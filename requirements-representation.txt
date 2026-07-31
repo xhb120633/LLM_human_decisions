@@ -1,0 +1,5 @@
+accelerate>=1.14.0
+numpy>=1.26
+psutil>=5.9
+torch>=2.6
+transformers @ git+https://github.com/huggingface/transformers.git@b6d5084fb4a5dd11e44005a5fa009e7943271090

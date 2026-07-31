@@ -1,0 +1,2 @@
+# Compatibility alias: the standard environment now includes PyTorch and Transformers.
+-r requirements.txt
