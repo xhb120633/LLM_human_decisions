@@ -1,10 +1,11 @@
-﻿import fs from "node:fs/promises";
+import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Presentation, PresentationFile } from "@oai/artifact-tool";
+import sharp from "sharp";
 
 const WORK = path.dirname(fileURLToPath(import.meta.url));
-const OUT = path.join(WORK, "llm_risky_decision_tutorial_draft_v39_integrated_explanation.pptx");
+const OUT = path.join(WORK, "llm_risky_decision_tutorial_draft_v40_portable_explanation.pptx");
 const BUILD_DIR = path.join(WORK, "_build");
 const PREVIEW = path.join(BUILD_DIR, "preview");
 const LAYOUT = path.join(BUILD_DIR, "layout");
@@ -66,6 +67,63 @@ function text(slide, value, x, y, w, h, o = {}) {
     insets: o.insets ?? { top: 0, right: 0, bottom: 0, left: 0 },
   };
   return t;
+}
+
+function xmlEscape(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+async function addStaticLineChart(slide, cfg) {
+  const { x, y, w, h, categories, series, yMin, yMax, yStep, showLegend = false, labelSeries = [] } = cfg;
+  const yFormat = cfg.yFormat ?? ((v) => v.toFixed(1));
+  const margin = { left: 58, right: 18, top: 16, bottom: showLegend ? 66 : 42 };
+  const plotW = w - margin.left - margin.right;
+  const plotH = h - margin.top - margin.bottom;
+  const sx = (i) => margin.left + (categories.length === 1 ? plotW / 2 : (i / (categories.length - 1)) * plotW);
+  const sy = (v) => margin.top + ((yMax - v) / (yMax - yMin)) * plotH;
+  const ticks = [];
+  for (let v = yMin; v <= yMax + yStep * 0.25; v += yStep) ticks.push(Number(v.toFixed(8)));
+  const grid = ticks.map((v) => {
+    const yy = sy(v);
+    return `<line x1="${margin.left}" y1="${yy}" x2="${margin.left + plotW}" y2="${yy}" stroke="${C.line}" stroke-width="1"/>` +
+      `<text x="${margin.left - 10}" y="${yy + 5}" text-anchor="end" font-family="Arial" font-size="13" fill="${C.muted}">${xmlEscape(yFormat(v))}</text>`;
+  }).join("");
+  const xTicks = categories.map((c, i) => `<text x="${sx(i)}" y="${margin.top + plotH + 24}" text-anchor="middle" font-family="Arial" font-size="13" fill="${C.ink}">${xmlEscape(c)}</text>`).join("");
+  const chartLines = series.map((entry, seriesIndex) => {
+    const points = entry.values.map((v, i) => `${sx(i)},${sy(v)}`).join(" ");
+    const dash = entry.dash ? ` stroke-dasharray="${entry.dash}"` : "";
+    const path = `<polyline points="${points}" fill="none" stroke="${entry.color}" stroke-width="${entry.width ?? 3}" stroke-linejoin="round" stroke-linecap="round"${dash}/>`;
+    const markers = entry.markers === false ? "" : entry.values.map((v, i) => `<circle cx="${sx(i)}" cy="${sy(v)}" r="${entry.markerSize ?? 4}" fill="${C.white}" stroke="${entry.color}" stroke-width="2"/>`).join("");
+    const labels = labelSeries.includes(seriesIndex) ? entry.values.map((v, i) => `<text x="${sx(i)}" y="${Math.max(13, sy(v) - 10)}" text-anchor="middle" font-family="Arial" font-size="13" font-weight="700" fill="${entry.color}">${xmlEscape(v.toFixed(3))}</text>`).join("") : "";
+    return path + markers + labels;
+  }).join("");
+  const named = series.filter((entry) => entry.name);
+  const legend = showLegend ? named.map((entry, i) => {
+    const itemW = plotW / named.length;
+    const xx = margin.left + i * itemW;
+    const yy = h - 22;
+    return `<line x1="${xx}" y1="${yy - 5}" x2="${xx + 26}" y2="${yy - 5}" stroke="${entry.color}" stroke-width="3"/>` +
+      `<text x="${xx + 34}" y="${yy}" font-family="Arial" font-size="13" fill="${C.body}">${xmlEscape(entry.name)}</text>`;
+  }).join("") : "";
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w * 2}" height="${h * 2}" viewBox="0 0 ${w} ${h}">
+    <rect width="${w}" height="${h}" fill="${C.white}"/>
+    ${grid}
+    <line x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${margin.top + plotH}" stroke="${C.ink}" stroke-width="1.2"/>
+    <line x1="${margin.left}" y1="${margin.top + plotH}" x2="${margin.left + plotW}" y2="${margin.top + plotH}" stroke="${C.ink}" stroke-width="1.2"/>
+    ${xTicks}${chartLines}${legend}
+  </svg>`;
+  const png = await sharp(Buffer.from(svg)).png().toBuffer();
+  slide.images.add({
+    blob: png,
+    contentType: "image/png",
+    alt: cfg.alt ?? "Device-independent line chart with straight line segments",
+    fit: "contain",
+    position: { left: x, top: y, width: w, height: h },
+  });
 }
 
 function rich(slide, paragraphs, x, y, w, h, o = {}) {
@@ -280,46 +338,39 @@ function notebookTransition(p, cfg) {
     color: C.blue,
   });
 
-  shape(s, "rect", 566, 214, 1.25, 362, C.line);
-  text(s, "Selected work behind this tutorial", 620, 218, 550, 38, {
+  shape(s, "rect", 566, 214, 1.25, 376, C.line);
+  text(s, "Selected work behind this tutorial", 620, 206, 550, 38, {
     size: 26,
     bold: true,
     color: C.ink,
   });
 
-  text(s, "ICLR 2026", 620, 288, 124, 24, { size: 17, bold: true, color: C.blue });
-  text(s, "Zhu*, Xie* et al.", 760, 288, 390, 24, { size: 17, color: C.muted });
-  text(s, "Using Reinforcement Learning to Train Large Language Models to Explain Human Decisions", 620, 320, 550, 58, {
-    size: 20,
-    bold: true,
-    color: C.body,
-    lineSpacing: 1.08,
-  });
-
-  text(s, "CCN 2026", 620, 400, 124, 24, { size: 17, bold: true, color: C.blue });
-  text(s, "Xie et al.", 760, 400, 390, 24, { size: 17, color: C.muted });
-  text(s, "Think-Aloud Reshapes Automated Cognitive Model Discovery Beyond Behavior", 620, 432, 550, 58, {
-    size: 20,
-    bold: true,
-    color: C.body,
-    lineSpacing: 1.08,
-  });
-
-  text(s, "COLM 2024", 620, 512, 124, 24, { size: 17, bold: true, color: C.blue });
-  text(s, "Xie et al.", 760, 512, 390, 24, { size: 17, color: C.muted });
-  text(s, "From Strategic Narratives to Code-Like Cognitive Models", 620, 544, 550, 34, {
-    size: 20,
-    bold: true,
-    color: C.body,
+  const selectedWork = [
+    ["ICLR 2026", "Zhu*, Xie* et al.", "Using Reinforcement Learning to Train Large Language Models to Explain Human Decisions"],
+    ["CCN 2026", "Xie et al.", "Think-Aloud Reshapes Automated Cognitive Model Discovery Beyond Behavior"],
+    ["COLM 2024", "Xie et al.", "From Strategic Narratives to Code-Like Cognitive Models"],
+    ["NeurIPS 2023 AI4Science", "Xie, Xiong, & Wilson", "Text2Decision: Decoding Latent Variables in Risky Decision Making from Think Aloud Text"],
+  ];
+  selectedWork.forEach((work, i) => {
+    const y = 266 + i * 82;
+    text(s, work[0], 620, y, 216, 22, { size: 15, bold: true, color: C.blue });
+    text(s, work[1], 846, y, 310, 22, { size: 15, color: C.muted });
+    text(s, work[2], 620, y + 27, 550, 48, {
+      size: 18,
+      bold: true,
+      color: C.body,
+      lineSpacing: 1.05,
+    });
   });
 
   notes(s, [
     "Briefly introduce the research program rather than giving a full biography.",
-    "The three papers motivate the tutorial's progression from prediction to explanation and model discovery.",
+    "The four papers motivate the tutorial's progression from prediction to explanation and model discovery.",
     "[Sources]",
     "- https://openreview.net/forum?id=coJPBEZ9Te",
     "- https://arxiv.org/abs/2605.05091 (conference status: CCN 2026, confirmed by the presenter)",
     "- https://openreview.net/forum?id=1Tny4KgGO2",
+    "- https://openreview.net/forum?id=fEoemPDicz",
     "[/Sources]",
   ]);
 }
@@ -382,23 +433,20 @@ function notebookTransition(p, cfg) {
   text(s, "B   -3 for sure", 146, 420, 480, 66, { size: 28, bold: true, color: C.orange, lineSpacing: 1.08 });
   text(s, "Observed choice is hidden until evaluation.", 116, 492, 480, 24, { size: 18, color: C.muted });
   text(s, "Evidence added at each step", 766, 218, 410, 34, { size: 25, bold: true, color: C.blue });
-  shape(s, "rect", 782, 286, 2, 222, C.line);
+  text(s, "Modeling step", 782, 270, 208, 24, { size: 16, bold: true, color: C.muted });
+  text(s, "Evidence available", 1002, 270, 174, 24, { size: 16, bold: true, color: C.muted });
   const levels = [
-    ["Zero-shot", "current trial"],
-    ["Participant history", "+ P025 choices"],
-    ["Fine-tuned model", "+ training participants"],
-    ["Beyond prediction", "+ report or diagnostic trial"],
+    ["Zero-shot prediction", "Current trial only", C.blue],
+    ["Participant history", "Same person's past trials", C.purple],
+    ["Fine-tuned prediction", "Training participants", C.teal],
+    ["Beyond prediction", "Report or diagnostic test", C.coral],
   ];
   levels.forEach((v, i) => {
-    const y = 274 + i * 72;
-    shape(s, "ellipse", 772, y + 8, 22, 22, C.white, C.blue, 2);
-    if (i < 3) {
-      text(s, v[0], 816, y, 190, 30, { size: 22, bold: true, color: C.ink });
-      text(s, v[1], 1004, y, 190, 30, { size: 20, color: C.body });
-    } else {
-      text(s, v[0], 816, y, 360, 30, { size: 22, bold: true, color: C.ink });
-      text(s, v[1], 816, y + 31, 360, 28, { size: 18, color: C.body });
-    }
+    const y = 310 + i * 62;
+    shape(s, "rect", 782, y + 9, 8, 8, v[2]);
+    text(s, v[0], 808, y, 190, 34, { size: 20, bold: true, color: C.ink });
+    text(s, v[1], 1002, y, 174, 42, { size: 18, color: C.body, lineSpacing: 1.05 });
+    if (i < levels.length - 1) shape(s, "rect", 782, y + 49, 394, 1, C.line);
   });
   notes(s, "P025 is an anonymized participant in the bundled public teaching slice. Trial 21 stays fixed through the worked example.");
 }
@@ -806,61 +854,16 @@ notebookTransition(p, {
   header(s, "A first attempt produces a suspicious learning curve", "Hands-on / failed pilot", 23, 1, "Unbalanced pipeline check / 2 participants x 4 targets");
   text(s, "Mean held-out log loss", 84, 214, 360, 34, { size: 24, bold: true, color: C.blue });
 
-  s.charts.add("line", {
-    position: { left: 82, top: 248, width: 966, height: 294 },
+  await addStaticLineChart(s, {
+    x: 82, y: 248, w: 966, h: 294,
     categories: ["0", "1", "2", "5", "10", "20"],
     series: [
-      {
-        name: "Mean log loss",
-        values: [0.594, 0.772, 0.692, 1.029, 1.684, 1.281],
-        valuesFormatCode: "0.000",
-        line: { style: "solid", fill: C.blue, width: 3 },
-        marker: { symbol: "circle", size: 8 },
-        dataLabelOverrides: [0.594, 0.772, 0.692, 1.029, 1.684, 1.281].map((v, idx) => ({
-          idx,
-          text: v.toFixed(3),
-          position: "outEnd",
-          showValue: false,
-          textStyle: { fill: C.blue, fontSize: 14, bold: true },
-        })),
-      },
-      {
-        name: "Random choice",
-        values: [Math.log(2), Math.log(2), Math.log(2), Math.log(2), Math.log(2), Math.log(2)],
-        line: { style: "solid", fill: C.mutedLight, width: 1.75 },
-        marker: { symbol: "none" },
-      },
+      { name: "Mean log loss", values: [0.594, 0.772, 0.692, 1.029, 1.684, 1.281], color: C.blue, width: 3, markerSize: 4 },
+      { name: "Random choice", values: [Math.log(2), Math.log(2), Math.log(2), Math.log(2), Math.log(2), Math.log(2)], color: C.mutedLight, width: 1.75, markers: false },
     ],
-    hasLegend: false,
-    lineOptions: { grouping: "standard", smooth: false, varyColors: false },
-    xAxis: {
-      visible: true,
-      textStyle: { fill: C.ink, fontSize: 15 },
-      line: { style: "solid", fill: C.ink, width: 1 },
-      majorGridlines: null,
-    },
-    yAxis: {
-      visible: true,
-      min: 0,
-      max: 1.8,
-      majorUnit: 0.6,
-      numberFormatCode: "0.0",
-      textStyle: { fill: C.muted, fontSize: 14 },
-      line: { style: "solid", fill: C.ink, width: 1 },
-      majorGridlines: { style: "solid", fill: C.line, width: 1 },
-    },
-
-    chartFill: C.white,
-    chartLine: { style: "solid", fill: "none", width: 0 },
-    plotAreaFill: C.white,
-    plotAreaLine: { style: "solid", fill: "none", width: 0 },
-  });
-
-  const pilotLabelXs = [200, 351, 501, 652, 803, 953];
-  const pilotLabelValues = [0.594, 0.772, 0.692, 1.029, 1.684, 1.281];
-  const pilotLabelY = (v) => 510 - (v / 1.8) * 255 - 28;
-  pilotLabelValues.forEach((v, i) => {
-    text(s, v.toFixed(3), pilotLabelXs[i] - 38, pilotLabelY(v), 76, 22, { size: 14, bold: true, color: C.blue, align: "center" });
+    yMin: 0, yMax: 1.8, yStep: 0.6,
+    labelSeries: [0],
+    alt: "Mean log loss by number of history examples, with random-choice reference",
   });
 
   shape(s, "rect", 736, 222, 34, 2, C.mutedLight);
@@ -896,46 +899,27 @@ notebookTransition(p, {
     },
   ];
 
-  function addLearningChart(x, key, yMin, yMax, majorUnit, reference) {
-    const generatedSeries = series.map((entry) => ({
+  async function addLearningChart(x, key, yMin, yMax, majorUnit, reference) {
+    const chartSeries = series.map((entry) => ({
       name: entry.name,
       values: entry[key],
-      line: { style: "solid", fill: entry.color, width: 2.5 },
-      marker: { symbol: "circle", size: 6 },
+      color: entry.color,
+      width: 2.5,
+      markerSize: 3.5,
     }));
-    generatedSeries.push({
+    chartSeries.push({
       name: "Reference",
       values: labels.map(() => reference),
-      line: { style: "solid", fill: C.mutedLight, width: 1.25 },
-      marker: { symbol: "none" },
+      color: C.mutedLight,
+      width: 1.25,
+      markers: false,
     });
-
-    s.charts.add("line", {
-      position: { left: x, top: 260, width: 520, height: 286 },
+    await addStaticLineChart(s, {
+      x, y: 260, w: 520, h: 286,
       categories: labels,
-      series: generatedSeries,
-      hasLegend: false,
-      lineOptions: { grouping: "standard", smooth: false, varyColors: false },
-      xAxis: {
-        visible: true,
-        textStyle: { fill: C.ink, fontSize: 12 },
-        line: { style: "solid", fill: C.ink, width: 1 },
-        majorGridlines: null,
-      },
-      yAxis: {
-        visible: true,
-        min: yMin,
-        max: yMax,
-        majorUnit,
-        numberFormatCode: "0.0",
-        textStyle: { fill: C.muted, fontSize: 12 },
-        line: { style: "solid", fill: C.ink, width: 1 },
-        majorGridlines: { style: "solid", fill: C.line, width: 1 },
-      },
-      chartFill: C.white,
-      chartLine: { style: "solid", fill: "none", width: 0 },
-      plotAreaFill: C.white,
-      plotAreaLine: { style: "solid", fill: "none", width: 0 },
+      series: chartSeries,
+      yMin, yMax, yStep: majorUnit,
+      alt: `Participant-level ${key} learning curves with reference line`,
     });
   }
 
@@ -944,8 +928,8 @@ notebookTransition(p, {
   text(s, "Log loss", 690, 208, 510, 30, { size: 23, bold: true, color: C.blue });
   text(s, "Lower is better", 690, 240, 510, 22, { size: 15, color: C.muted });
 
-  addLearningChart(72, "accuracy", 0.2, 0.9, 0.2, 0.5);
-  addLearningChart(690, "loss", 0.5, 1.6, 0.3, Math.log(2));
+  await addLearningChart(72, "accuracy", 0.2, 0.9, 0.2, 0.5);
+  await addLearningChart(690, "loss", 0.5, 1.6, 0.3, Math.log(2));
 
   text(s, "Number of balanced earlier trials in context", 158, 552, 350, 22, { size: 14, color: C.body, align: "center" });
   text(s, "Number of balanced earlier trials in context", 776, 552, 350, 22, { size: 14, color: C.body, align: "center" });
@@ -1165,15 +1149,12 @@ for (const revealStage of [2]) {
   const s = newSlide(p);
   header(s, "Choice signal peaks near layer 15", "Representation / first test", 36, 2, "Choice word masked / questions held out during evaluation");
   text(s, "Balanced accuracy on held-out risky-choice questions", 84, 204, 760, 34, { size: 27, bold: true, color: C.ink });
-  s.charts.add("line", {
-    position: { left: 82, top: 252, width: 820, height: 286 },
+  await addStaticLineChart(s, {
+    x: 82, y: 252, w: 820, h: 286,
     categories: ["0", "4", "8", "12", "15", "18", "24", "32"],
-    series: [{ name: "Linear readout", values: [0.498, 0.794, 0.834, 0.874, 0.942, 0.932, 0.902, 0.894], line: { style: "solid", fill: C.blue, width: 3 }, marker: { symbol: "circle", size: 8 } }],
-    hasLegend: false,
-    lineOptions: { grouping: "standard", smooth: false, varyColors: false },
-    xAxis: { visible: true, title: "Qwen model layer", textStyle: { fill: C.ink, fontSize: 14 }, line: { style: "solid", fill: C.ink, width: 1 }, majorGridlines: null },
-    yAxis: { visible: true, min: 0.45, max: 1.0, majorUnit: 0.1, numberFormatCode: "0.0", textStyle: { fill: C.muted, fontSize: 13 }, line: { style: "solid", fill: C.ink, width: 1 }, majorGridlines: { style: "solid", fill: C.line, width: 1 } },
-    chartFill: C.white, chartLine: { style: "solid", fill: "none", width: 0 }, plotAreaFill: C.white, plotAreaLine: { style: "solid", fill: "none", width: 0 },
+    series: [{ name: "Linear readout", values: [0.498, 0.794, 0.834, 0.874, 0.942, 0.932, 0.902, 0.894], color: C.blue, width: 3, markerSize: 4 }],
+    yMin: 0.45, yMax: 1.0, yStep: 0.1,
+    alt: "Balanced choice-decoding accuracy by Qwen model layer",
   });
   text(s, "Qwen output", 952, 244, 210, 28, { size: 19, bold: true, color: C.muted });
   text(s, "0.934", 952, 278, 210, 52, { size: 40, bold: true, color: C.ink });
@@ -1230,15 +1211,12 @@ for (const revealStage of [2]) {
   const s = newSlide(p);
   header(s, "Distance reveals divergence, not meaning", "Representation / geometry to interpretation", 39, 2, "Question 4 / layer 15 / original-state distance before semantic interpretation");
   text(s, "Mean pairwise distance between persona trajectories", 84, 204, 760, 32, { size: 24, bold: true, color: C.ink });
-  s.charts.add("line", {
-    position: { left: 82, top: 246, width: 760, height: 268 },
+  await addStaticLineChart(s, {
+    x: 82, y: 246, w: 760, h: 268,
     categories: ["0%", "14%", "29%", "43%", "57%", "71%", "86%"],
-    series: [{ name: "Persona separation", values: [0.000, 0.296, 0.522, 0.567, 0.676, 0.558, 0.394], line: { style: "solid", fill: C.purple, width: 3 }, marker: { symbol: "circle", size: 8 } }],
-    hasLegend: false,
-    lineOptions: { grouping: "standard", smooth: false, varyColors: false },
-    xAxis: { visible: true, title: "reasoning progress", textStyle: { fill: C.ink, fontSize: 14 }, line: { style: "solid", fill: C.ink, width: 1 }, majorGridlines: null },
-    yAxis: { visible: true, min: 0, max: 0.75, majorUnit: 0.15, numberFormatCode: "0.0", textStyle: { fill: C.muted, fontSize: 13 }, line: { style: "solid", fill: C.ink, width: 1 }, majorGridlines: { style: "solid", fill: C.line, width: 1 } },
-    chartFill: C.white, chartLine: { style: "solid", fill: "none", width: 0 }, plotAreaFill: C.white, plotAreaLine: { style: "solid", fill: "none", width: 0 },
+    series: [{ name: "Persona separation", values: [0.000, 0.296, 0.522, 0.567, 0.676, 0.558, 0.394], color: C.purple, width: 3, markerSize: 4 }],
+    yMin: 0, yMax: 0.75, yStep: 0.15,
+    alt: "Mean pairwise distance between persona trajectories over reasoning progress",
   });
   text(s, "Validated", 902, 226, 230, 28, { size: 21, bold: true, color: C.blue });
   text(s, "Distance increases in the original 4,096D state space. The MDS pattern is not only a projection artifact.", 902, 266, 270, 104, { size: 20, color: C.body, lineSpacing: 1.14 });
@@ -1349,20 +1327,17 @@ for (const revealStage of [2]) {
 {
   const s = newSlide(p);
   header(s, "Does the 12D interpretation retain behavioral information?", "Representation / downstream test", 44, 2, "Held-out questions / explicit choice statement masked");
-  s.charts.add("line", {
-    position: { left: 82, top: 242, width: 860, height: 308 },
+  await addStaticLineChart(s, {
+    x: 82, y: 242, w: 860, h: 308,
     categories: ["0%", "25%", "50%", "75%", "100%"],
     series: [
-      { name: "12D decision state", values: [0.595, 0.500, 0.591, 0.680, 0.742], line: { style: "solid", fill: C.blue, width: 3 }, marker: { symbol: "circle", size: 8 } },
-      { name: "A-B option axis", values: [0.403, 0.369, 0.376, 0.385, 0.385], line: { style: "solid", fill: C.orange, width: 2.5 }, marker: { symbol: "circle", size: 7 } },
-      { name: "Chance", values: [0.5, 0.5, 0.5, 0.5, 0.5], line: { style: "solid", fill: C.mutedLight, width: 1.5 }, marker: { symbol: "none" } },
+      { name: "12D decision state", values: [0.595, 0.500, 0.591, 0.680, 0.742], color: C.blue, width: 3, markerSize: 4 },
+      { name: "A-B option axis", values: [0.403, 0.369, 0.376, 0.385, 0.385], color: C.orange, width: 2.5, markerSize: 3.5 },
+      { name: "Chance", values: [0.5, 0.5, 0.5, 0.5, 0.5], color: C.mutedLight, width: 1.5, markers: false },
     ],
-    hasLegend: true,
-    legend: { position: "bottom", textStyle: { fill: C.body, fontSize: 14 } },
-    lineOptions: { grouping: "standard", smooth: false, varyColors: false },
-    xAxis: { visible: true, title: "reasoning progress", textStyle: { fill: C.ink, fontSize: 14 }, line: { style: "solid", fill: C.ink, width: 1 }, majorGridlines: null },
-    yAxis: { visible: true, min: 0.3, max: 0.8, majorUnit: 0.1, numberFormatCode: "0.0", textStyle: { fill: C.muted, fontSize: 13 }, line: { style: "solid", fill: C.ink, width: 1 }, majorGridlines: { style: "solid", fill: C.line, width: 1 } },
-    chartFill: C.white, chartLine: { style: "solid", fill: "none", width: 0 }, plotAreaFill: C.white, plotAreaLine: { style: "solid", fill: "none", width: 0 },
+    yMin: 0.3, yMax: 0.8, yStep: 0.1,
+    showLegend: true,
+    alt: "Held-out choice prediction over reasoning progress from the 12-dimensional state and A-B option axis",
   });
   text(s, "AUC", 84, 204, 90, 28, { size: 22, bold: true, color: C.blue });
   text(s, "0.742", 1000, 292, 170, 54, { size: 43, bold: true, color: C.blue });
@@ -1387,8 +1362,8 @@ notebookTransition(p, {
 sectionSlide(
   p,
   4,
-  "Turn explanations into executable tests",
-  "Annotate process reports, validate the coding, and use supported ingredients to constrain model discovery.",
+  "Turn verbal explanations into testable process evidence",
+  "Define an annotation codebook, validate it against held-out evidence, and only then decide whether it should constrain a model search.",
   3,
 );
 
@@ -1452,7 +1427,7 @@ rowsSlide(p, {
 // 43 Construct-validity result
 {
   const s = newSlide(p);
-  header(s, "The codebook detects a controlled reasoning manipulation", "Explanation / validation", 43, 3, "Notebook 3 offline result; five personas; grouped by question");
+  header(s, "The codebook detects a controlled reasoning manipulation", "Explanation / validation", 43, 3, "Notebook 3 transparent lexical baseline; five personas; grouped by question");
   text(s, "0.519", 116, 238, 360, 86, { size: 58, bold: true, color: C.blue, align: "center" });
   text(s, "held-question persona\nbalanced accuracy", 116, 338, 360, 66, { size: 23, color: C.body, align: "center", lineSpacing: 1.12 });
   text(s, "0.200", 690, 238, 360, 86, { size: 58, bold: true, color: C.muted, align: "center" });
@@ -1488,7 +1463,7 @@ twoColSlide(p, {
 // 45 Annotation to restricted candidate specification
 {
   const s = newSlide(p);
-  header(s, "Annotations nominate computational ingredients", "Explanation -> model discovery", 45, 3, "Restricted candidate specification");
+  header(s, "Annotations can nominate computational ingredients", "Explanation / optional bridge", 45, 3, "Restricted candidate specification");
   text(s, "Observed annotations", 84, 220, 360, 34, { size: 25, bold: true, color: C.blue });
   bullets(s, [
     "expected value",
@@ -1506,14 +1481,14 @@ twoColSlide(p, {
     190,
     { size: 21, typeface: MONO, color: C.ink, lineSpacing: 1.18 },
   );
-  academicPoint(s, "The guided candidate did not win: balanced accuracy 0.555 versus 0.609 for EV-only.", 548);
-  notes(s, "The annotation proposes a bounded model specification, but held-question behavior still decides what survives. In the offline result, the annotation-guided option model did not outperform EV-only.");
+  academicPoint(s, "This optional constraint did not win: balanced accuracy 0.555 versus 0.609 for EV-only.", 548);
+  notes(s, "This slide shows one optional bridge from validated annotation to a bounded model specification. Discovery can instead begin from behavior or prior theory. In the offline result, the annotation-guided option model did not outperform EV-only.");
 }
 
 // 46 Held-question behavior result
 {
   const s = newSlide(p);
-  header(s, "Process annotations predict choice, but simple fusion does not help", "Explanation / evaluation", 46, 3, "Notebook 3 offline result; five-fold grouped by question");
+  header(s, "Process annotations predict choice, but simple fusion does not help", "Explanation / evaluation", 46, 3, "Notebook 3 transparent lexical baseline; API annotation not used");
   text(s, "Input to the readout", 84, 218, 430, 28, { size: 18, bold: true, color: C.muted });
   text(s, "Balanced accuracy", 674, 218, 220, 28, { size: 18, bold: true, color: C.muted, align: "center" });
   text(s, "Log loss", 956, 218, 180, 28, { size: 18, bold: true, color: C.muted, align: "center" });
@@ -1533,24 +1508,37 @@ twoColSlide(p, {
   notes(s, "All three readouts hold out entire questions. Explicit preference claims were removed before annotation. This is predictive evidence, not causal recovery.");
 }
 
-flowSlide(p, {
-  num: 47,
-  title: "One discovery iteration leaves an auditable evidence trace",
-  section: "Model discovery",
-  active: 4,
-  steps: [
-    ["Annotate", "Information and operations before the action claim"],
-    ["Propose", "Restricted candidate specifications"],
-    ["Fit", "Parameters on training questions"],
-    ["Evaluate", "Choices and process evidence on held-out questions"],
-    ["Design", "A trial where survivors disagree"],
-  ],
-  colors: [C.purple, C.blue, C.teal, C.orange, C.coral],
-  gap: 70,
-  stepTitleSize: 22,
-  stepBodySize: 18,
-  takeaway: "Agentic capability coordinates the loop; external evaluation determines what survives.",
-});
+{
+  const s = newSlide(p);
+  header(s, "Model discovery is a separate search problem", "Model discovery / boundary", 47, 4, "Annotation is one optional input");
+
+  text(s, "Explanation / annotation", 84, 206, 450, 34, { size: 25, bold: true, color: C.blue });
+  text(s, "Question", 84, 260, 120, 26, { size: 17, bold: true, color: C.muted });
+  text(s, "What information or operation appears in a report?", 218, 256, 330, 62, { size: 23, bold: true, color: C.ink, lineSpacing: 1.08 });
+  text(s, "Output", 84, 346, 120, 26, { size: 17, bold: true, color: C.muted });
+  text(s, "Validated observation variables", 218, 342, 330, 40, { size: 22, color: C.body });
+
+  shape(s, "rect", 598, 206, 1.5, 190, C.line);
+  text(s, "Model discovery", 650, 206, 500, 34, { size: 25, bold: true, color: C.coral });
+  text(s, "Question", 650, 260, 120, 26, { size: 17, bold: true, color: C.muted });
+  text(s, "Which executable account survives new evidence?", 784, 256, 352, 62, { size: 23, bold: true, color: C.ink, lineSpacing: 1.08 });
+  text(s, "Can start from", 650, 346, 120, 26, { size: 17, bold: true, color: C.muted });
+  text(s, "Behavior · theory · process data · intervention", 784, 342, 372, 52, { size: 21, color: C.body, lineSpacing: 1.05 });
+
+  const discoverySteps = [
+    ["Evidence + candidate space", C.purple],
+    ["Propose executable models", C.blue],
+    ["Fit and evaluate", C.teal],
+    ["Design diagnostic tests", C.coral],
+  ];
+  discoverySteps.forEach((step, i) => {
+    const x = 84 + i * 280;
+    text(s, step[0], x, 450, 244, 66, { size: 20, bold: true, color: step[1], align: "center", valign: "middle", fill: C.faint, line: C.line, lineWidth: 1 });
+    if (i < discoverySteps.length - 1) text(s, "->", x + 246, 468, 32, 28, { size: 22, bold: true, color: C.muted, align: "center" });
+  });
+  academicPoint(s, "Annotation can constrain discovery, but discovery neither requires annotation nor inherits its validity.", 566, 20);
+  notes(s, "Draw the boundary explicitly. Annotation converts reports into testable variables. Model discovery searches over executable accounts and may begin from behavior, theory, process data, or interventions. Notebook 3 demonstrates an annotation-guided route, not a required pipeline.");
+}
 
 // 48 Diagnostic trial
 {
@@ -1571,7 +1559,7 @@ flowSlide(p, {
     text(s, row[2], 700, y, 458, 38, { size: 21, color: C.body });
   });
   academicPoint(s, "Choose trials where candidate predictions diverge, then update both behavioral and process evidence.", 548);
-  notes(s, "The annotation-guided hybrid creates a third prediction, making active design more informative than a two-model comparison.");
+  notes(s, "The hybrid is only one candidate. The scientific value comes from choosing a trial on which surviving executable accounts disagree.");
 }
 
 // 49 Surrogate mechanism
@@ -1585,7 +1573,7 @@ flowSlide(p, {
   text(s, "Ground-truth and surrogate\nmake nearly identical predictions", 134, 334, 374, 82, { size: 24, bold: true, color: C.ink, align: "center", valign: "middle" });
   text(s, "The same models diverge\nunder a targeted manipulation", 734, 334, 374, 82, { size: 24, bold: true, color: C.ink, align: "center", valign: "middle" });
   arrow(s, 594, 338, 54, 56);
-  academicPoint(s, "Annotation narrows the search space; intervention and transfer are still needed for a causal claim.", 548);
+  academicPoint(s, "No discovery entry point guarantees mechanism recovery; intervention and transfer are still needed for a causal claim.", 548);
   notes(s, "Keep the surrogate lesson, but express it with two task regions rather than a decorative hand-drawn curve.");
 }
 
@@ -1596,7 +1584,7 @@ rowsSlide(p, {
   active: 4,
   rows: [
     ["Predictive success", "Held-out likelihood improves", C.blue],
-    ["Process consistency", "Model operations agree with validated annotations", C.green],
+    ["Process consistency", "Model operations agree with independent process evidence", C.green],
     ["Primitive recovery", "The generating computational components are recovered", C.coral],
     ["Mechanistic recovery", "The process survives intervention and transfer", C.purple],
   ],
@@ -1607,7 +1595,7 @@ rowsSlide(p, {
 
 flowSlide(p, {
   num: 51,
-  title: "Notebook 3 connects annotation to model discovery",
+  title: "Notebook 3 demonstrates one annotation-guided route",
   section: "Hands-on",
   active: 4,
   steps: [
@@ -1621,7 +1609,7 @@ flowSlide(p, {
   gap: 70,
   stepTitleSize: 22,
   stepBodySize: 18,
-  takeaway: "Students modify one label or candidate family and observe how the next diagnostic test changes.",
+  takeaway: "This notebook is one route: discovery can also begin from behavior, prior theory, or interventions without annotation.",
 });
 
 breakSlide(p, "After the break: return to the opening choice with stronger scientific claims.", 4);
@@ -1683,9 +1671,10 @@ simpleListSlide(p, {
     "Aher, Arriaga, & Kalai (2023). Using LLMs to Simulate Multiple Humans. arXiv:2208.10264",
     "Argyle et al. (2023). Out of One, Many. Political Analysis, 31(3), 337-351",
     "Binz & Schulz (2023). Using cognitive psychology to understand GPT-3. PNAS, 120(6)",
-    "Li et al. (2024). Automated Statistical Model Discovery with Language Models. PMLR 235"
+    "Li et al. (2024). Automated Statistical Model Discovery with Language Models. PMLR 235",
+    "Xie, Xiong, & Wilson (2023). Text2Decision. NeurIPS 2023 AI for Science Workshop"
   ],
-  x: 84, y: 212, w: 1100, h: 340, size: 20, lineSpacing: 1.17
+  x: 84, y: 202, w: 1100, h: 382, size: 19, lineSpacing: 1.15
 });await fs.mkdir(path.dirname(OUT), { recursive: true });
 await fs.rm(PREVIEW, { recursive: true, force: true });
 await fs.rm(LAYOUT, { recursive: true, force: true });

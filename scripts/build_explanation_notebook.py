@@ -36,14 +36,14 @@ def build_notebook():
 
             We reuse the synthetic GPT-4 choice-and-reasoning records from Notebook 2. The final A/B conclusion was masked before Qwen representation analysis. Here we also truncate each trace before its first explicit preference claim.
 
-            > Annotation constrains model discovery; it does not reveal the true mechanism by itself.
+            > Annotation can constrain one model-discovery route; discovery does not require annotation, and annotation does not reveal the true mechanism by itself.
             '''
         ),
         md(
             r'''
             ## 0. Setup
 
-            The default path is offline and lightweight. It reads the cached sentence-level table produced for Notebook 2. Optional API annotation is disabled unless you explicitly turn it on.
+            The default path is offline and lightweight. It reads the cached sentence-level table produced for Notebook 2. **All bundled results use the transparent lexical baseline.** Optional GLM or DeepSeek annotation is disabled unless you explicitly turn it on; DeepSeek V4 was not used to generate the reported numbers.
             '''
         ),
         code(
@@ -225,7 +225,7 @@ def build_notebook():
             r'''
             ### Optional large-language-model annotation
 
-            A language model can replace or supplement the lexical baseline, but constrain its output to a codebook. Never ask it simply to reveal the “true strategy.”
+            A language model can replace or supplement the lexical baseline, but constrain its output to the same codebook. Never ask it simply to reveal the "true strategy." This optional comparison is not used for the bundled results.
             '''
         ),
         code(
