@@ -5,7 +5,7 @@ import { Presentation, PresentationFile } from "@oai/artifact-tool";
 import sharp from "sharp";
 
 const WORK = path.dirname(fileURLToPath(import.meta.url));
-const OUT = path.join(WORK, "llm_risky_decision_tutorial_draft_v40_portable_explanation.pptx");
+const OUT = path.join(WORK, "llm_risky_decision_tutorial_draft_v41_formal_arrows_temporal_trajectory.pptx");
 const BUILD_DIR = path.join(WORK, "_build");
 const PREVIEW = path.join(BUILD_DIR, "preview");
 const LAYOUT = path.join(BUILD_DIR, "layout");
@@ -202,7 +202,8 @@ function academicPoint(slide, value, y = 548, size = 21) {
 }
 
 function arrow(slide, x, y, w = 42, h = 56) {
-  text(slide, "->", x, y, w, h, { size: 34, color: C.muted, align: "center", valign: "middle" });
+  const arrowH = Math.max(8, Math.min(12, Math.round(h * 0.22)));
+  return shape(slide, "rightArrow", x, y + (h - arrowH) / 2, w, arrowH, C.muted);
 }
 function simpleListSlide(p, cfg) {
   const s = newSlide(p);
@@ -332,7 +333,7 @@ function notebookTransition(p, cfg) {
     138,
     { size: 27, color: C.body, lineSpacing: 1.16 },
   );
-  text(s, "Prediction  ->  Explanation  ->  Model discovery", 84, 530, 460, 30, {
+  text(s, "Prediction  →  Explanation  →  Model discovery", 84, 530, 460, 30, {
     size: 18,
     bold: true,
     color: C.blue,
@@ -483,10 +484,10 @@ for (let revealStage = 1; revealStage <= 2; revealStage++) {
       text(s, st[1], x + 12, 460, 156, 24, { size: 14.5, color: C.body, align: "center" });
     });
     text(s, "Repeat until a stop token", 842, 510, 298, 26, { size: 16, bold: true, color: C.muted, align: "center" });
-    text(s, "<- updated context changes the next prediction", 318, 510, 500, 26, { size: 16, bold: true, color: C.blue, align: "center", typeface: MONO });
+    text(s, "← updated context changes the next prediction", 318, 510, 500, 26, { size: 16, bold: true, color: C.blue, align: "center", typeface: MONO });
     shape(s, "rect", 82, 552, 1098, 1.25, C.line);
     text(s, "After generation stops", 104, 570, 210, 28, { size: 18, bold: true, color: C.blue });
-    text(s, "token sequence  ->  tokenizer decodes  ->  readable text", 332, 570, 760, 30, { size: 20, bold: true, color: C.ink, typeface: MONO, align: "center" });
+    text(s, "token sequence  →  tokenizer decodes  →  readable text", 332, 570, 760, 30, { size: 20, bold: true, color: C.ink, typeface: MONO, align: "center" });
   } else academicPoint(s, "One forward pass turns the current context into scores for the next token.", 494, 21);
   notes(s, [revealStage === 1 ? "Pause after the forward data flow. Advance once to reveal how generation repeats the same prediction step." : "The second build reveals the autoregressive generation routine.", "Treat the model blocks as a black box here; the teaching goal is the data flow, not Transformer internals.", "[Sources]", "- Vaswani et al. (2017), Attention Is All You Need.", "- Holtzman et al. (2020), The Curious Case of Neural Text Degeneration."]);
 }
@@ -825,7 +826,7 @@ predictionStep(p, 2, "Test whether personal history reveals individual differenc
   text(s, "Row contrast: participant specificity", 780, 482, 370, 28, { size: 18, color: C.muted, align: "right" });
   shape(s, "rect", 84, 526, 1066, 1, C.line);
   text(s, "Separate control", 84, 542, 180, 28, { size: 18, bold: true, color: C.blue });
-  text(s, "Swap A/B positions -> test label or position bias", 280, 538, 720, 34, { size: 22, color: C.body });
+  text(s, "Swap A/B positions → test label or position bias", 280, 538, 720, 34, { size: 22, color: C.body });
   notes(s, "This 2x2 matrix asks whether improvement depends on the participant identity and on correct trial-choice correspondence. The target trial and response remain held out in every condition.");
 }
 rowsSlide(p, {
@@ -1053,7 +1054,7 @@ sectionSlide(p, 3, "What information supports a decision?", "Four questions guid
   notes(s, "This is one record from the local synthetic dataset, lightly reformatted for readability. Choice 0 corresponds to Option A. Be explicit that these are synthetic GPT-4 data, not human observations. For representation analysis, the action claim is masked as Option X and the persona label is withheld.\n[Sources]\n- notebooks/results/representation/text2decision_multiscale_log_trajectories/sentence_decision_states.csv, trial_row 0.");
 }
 // Representation 3: representation as inference
-// Progressive reveal: observation -> inference boundary -> Qwen measurement.
+// Progressive reveal: observation → inference boundary → Qwen measurement.
 for (const revealStage of [2, 4]) {
   const s = newSlide(p);
   header(s, "Representation must be inferred from observations", "Representation / measurement", 35, 2, "A three-step measurement argument");
@@ -1067,7 +1068,7 @@ for (const revealStage of [2, 4]) {
     shape(s, "rect", 84, 454, 1096, 1.5, C.line);
     text(s, "Why use Qwen here?", 84, 480, 300, 34, { size: 25, bold: true, color: C.purple });
     bullets(s, ["The observation is think-aloud language.", "An open model provides contextual hidden states that we can inspect."], 390, 470, 770, 86, { size: 22, lineSpacing: 1.18 });
-    text(s, "masked think-aloud  ->  frozen Qwen  ->  candidate state h(t)", 190, 552, 900, 36, { size: 25, bold: true, color: C.blue, align: "center", typeface: MONO });
+    text(s, "masked think-aloud  →  frozen Qwen  →  candidate state h(t)", 190, 552, 900, 36, { size: 25, bold: true, color: C.blue, align: "center", typeface: MONO });
     academicPoint(s, "Qwen provides a model-dependent measurement of information expressed in the text - not ground truth about GPT-4 or a human.", 594, 18.5);
   } else if (revealStage === 1) academicPoint(s, "Representation research begins with observables because the latent state itself is unavailable.", 514, 20);
   else if (revealStage === 2) academicPoint(s, "A measurement model supplies the bridge from observations to a candidate latent state.", 514, 20);
@@ -1234,7 +1235,7 @@ for (const revealStage of [2]) {
 // Progressive reveal: train the map first, then transfer it to reasoning.
 for (const revealStage of [2]) {
   const s = newSlide(p);
-  header(s, "Train the map on known decision variables", "Representation / method", 41, 2, "Choice13K option descriptions -> frozen Qwen layer 15 -> feed-forward network -> 12 targets");
+  header(s, "Train the map on known decision variables", "Representation / method", 41, 2, "Choice13K option descriptions → frozen Qwen layer 15 → feed-forward network → 12 targets");
   text(s, "TRAINING", 84, 204, 180, 26, { size: 14, bold: true, color: C.muted });
   text(s, "Choice13K option text", 84, 260, 240, 70, { size: 24, bold: true, color: C.ink, align: "center", valign: "middle", fill: C.faint, line: C.line, lineWidth: 1 });
   arrow(s, 338, 270, 54, 50);
@@ -1441,7 +1442,7 @@ rowsSlide(p, {
 twoColSlide(p, {
   num: 44,
   title: "Continuous states and discrete annotations test each other",
-  section: "Representation -> Explanation",
+  section: "Representation → Explanation",
   active: 3,
   leftTitle: "Hidden-state readout",
   rightTitle: "Text annotation",
@@ -1534,7 +1535,7 @@ twoColSlide(p, {
   discoverySteps.forEach((step, i) => {
     const x = 84 + i * 280;
     text(s, step[0], x, 450, 244, 66, { size: 20, bold: true, color: step[1], align: "center", valign: "middle", fill: C.faint, line: C.line, lineWidth: 1 });
-    if (i < discoverySteps.length - 1) text(s, "->", x + 246, 468, 32, 28, { size: 22, bold: true, color: C.muted, align: "center" });
+    if (i < discoverySteps.length - 1) arrow(s, x + 246, 459, 32, 48);
   });
   academicPoint(s, "Annotation can constrain discovery, but discovery neither requires annotation nor inherits its validity.", 566, 20);
   notes(s, "Draw the boundary explicitly. Annotation converts reports into testable variables. Model discovery searches over executable accounts and may begin from behavior, theory, process data, or interventions. Notebook 3 demonstrates an annotation-guided route, not a required pipeline.");
