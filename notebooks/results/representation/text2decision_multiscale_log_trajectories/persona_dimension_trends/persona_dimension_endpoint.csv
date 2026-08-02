@@ -1,0 +1,61 @@
+persona,progress,dimension,mean_centered_delta,sem_centered_delta
+Outcome-Focused Decision-Maker,1.0,entropy,-0.08929182267478385,0.013667827132681994
+Outcome-Focused Decision-Maker,1.0,expected_value,0.03988765120111633,0.011807162902563163
+Outcome-Focused Decision-Maker,1.0,maximum_gain,-0.017727351159586454,0.014677177489032684
+Outcome-Focused Decision-Maker,1.0,maximum_loss,0.049943681966530915,0.012494464253316507
+Outcome-Focused Decision-Maker,1.0,minimum_gain,-0.020661327304875732,0.013900375573857609
+Outcome-Focused Decision-Maker,1.0,minimum_loss,0.07622828078633458,0.01271129597471971
+Outcome-Focused Decision-Maker,1.0,probability_maximum_gain,0.00316380513273914,0.011516454807344896
+Outcome-Focused Decision-Maker,1.0,probability_maximum_loss,-0.05574065929484858,0.014751997343721691
+Outcome-Focused Decision-Maker,1.0,probability_minimum_gain,0.0072783860573952626,0.01503806282916792
+Outcome-Focused Decision-Maker,1.0,probability_minimum_loss,0.042948763982029445,0.011157568395806046
+Outcome-Focused Decision-Maker,1.0,probability_two_largest_gains,-0.0021311940309126968,0.007679057647183247
+Outcome-Focused Decision-Maker,1.0,sum_two_largest_gains,-0.017592541851461987,0.007475205164693616
+Probability-Weighted Decision-Maker,1.0,entropy,-0.005796061643129715,0.012412337870408461
+Probability-Weighted Decision-Maker,1.0,expected_value,-0.055363798821176896,0.015716499391762676
+Probability-Weighted Decision-Maker,1.0,maximum_gain,-0.04586152863740601,0.014277087381481868
+Probability-Weighted Decision-Maker,1.0,maximum_loss,-0.06541356662294276,0.016290596195772982
+Probability-Weighted Decision-Maker,1.0,minimum_gain,-0.025987600729687765,0.011954808910937795
+Probability-Weighted Decision-Maker,1.0,minimum_loss,-0.11420093430802632,0.01711508058066525
+Probability-Weighted Decision-Maker,1.0,probability_maximum_gain,0.02187654292529553,0.011399332797798777
+Probability-Weighted Decision-Maker,1.0,probability_maximum_loss,0.042481858336542395,0.013243418674227814
+Probability-Weighted Decision-Maker,1.0,probability_minimum_gain,-0.00681332094072504,0.013736288873860164
+Probability-Weighted Decision-Maker,1.0,probability_minimum_loss,-0.03439870374986529,0.011141319398970664
+Probability-Weighted Decision-Maker,1.0,probability_two_largest_gains,0.009024769064576025,0.00892766418163253
+Probability-Weighted Decision-Maker,1.0,sum_two_largest_gains,-0.003980267499206349,0.00908102476193643
+Rational Decision-Maker,1.0,entropy,0.002167818398223663,0.01222724891448025
+Rational Decision-Maker,1.0,expected_value,-0.03267213845689118,0.012039352135125185
+Rational Decision-Maker,1.0,maximum_gain,-0.05885109835883457,0.012537358353499062
+Rational Decision-Maker,1.0,maximum_loss,-0.018551346755273597,0.013187669951592873
+Rational Decision-Maker,1.0,minimum_gain,-0.04314590398532686,0.011309289741687252
+Rational Decision-Maker,1.0,minimum_loss,-0.05445863206524436,0.01425426426290649
+Rational Decision-Maker,1.0,probability_maximum_gain,-0.00438441399207289,0.010652261607572806
+Rational Decision-Maker,1.0,probability_maximum_loss,0.0739416331584221,0.011742545094010858
+Rational Decision-Maker,1.0,probability_minimum_gain,-0.011948733997867897,0.012740877960271046
+Rational Decision-Maker,1.0,probability_minimum_loss,-0.007129090087361532,0.010077991969138616
+Rational Decision-Maker,1.0,probability_two_largest_gains,-0.00637099154677736,0.007022399683653765
+Rational Decision-Maker,1.0,sum_two_largest_gains,-0.022099582208604848,0.006781593201596295
+Risk-Averse,1.0,entropy,-0.018755766059320195,0.013691148140949204
+Risk-Averse,1.0,expected_value,0.013616558437945908,0.011419674011748517
+Risk-Averse,1.0,maximum_gain,-0.03241143586535088,0.013215873273095952
+Risk-Averse,1.0,maximum_loss,0.018844172525804097,0.012528812044915794
+Risk-Averse,1.0,minimum_gain,-0.04631790642417398,0.012504262607018066
+Risk-Averse,1.0,minimum_loss,0.06915846308758772,0.012773582975365575
+Risk-Averse,1.0,probability_maximum_gain,-0.029156592447536548,0.009870319888306103
+Risk-Averse,1.0,probability_maximum_loss,-0.03425766510515935,0.01229008274098754
+Risk-Averse,1.0,probability_minimum_gain,-0.02782165212075862,0.013526691149573456
+Risk-Averse,1.0,probability_minimum_loss,0.029583102817723677,0.010573309396690395
+Risk-Averse,1.0,probability_two_largest_gains,-0.025967454764757307,0.007005000450085063
+Risk-Averse,1.0,sum_two_largest_gains,-0.017055079331461984,0.006830022799241959
+Risk-Seeking,1.0,entropy,0.10548116091769735,0.013235495648644511
+Risk-Seeking,1.0,expected_value,0.0313218419005424,0.01295394568064041
+Risk-Seeking,1.0,maximum_gain,0.1466887488107895,0.013139518277542863
+Risk-Seeking,1.0,maximum_loss,0.012908976791769009,0.011962533634338636
+Risk-Seeking,1.0,minimum_gain,0.13012641630940497,0.013168479461726832
+Risk-Seeking,1.0,minimum_loss,0.017110736793552635,0.012348037922776963
+Risk-Seeking,1.0,probability_maximum_gain,0.009877720652638892,0.009826967883419128
+Risk-Seeking,1.0,probability_maximum_loss,-0.022379644948282165,0.010465489703903106
+Risk-Seeking,1.0,probability_minimum_gain,0.038539743076543134,0.012725757583901114
+Risk-Seeking,1.0,probability_minimum_loss,-0.030909341619539475,0.009355704462208072
+Risk-Seeking,1.0,probability_two_largest_gains,0.025479710176997076,0.007696965920945285
+Risk-Seeking,1.0,sum_two_largest_gains,0.05781597812011696,0.007795282240190033

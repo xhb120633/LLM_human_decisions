@@ -1,0 +1,183 @@
+{
+  "n_trials": 1368,
+  "n_sentences": 11642,
+  "n_questions": 19,
+  "explicit_conclusion_excluded": true,
+  "endpoint_definition": "last cumulative sentence state before first Option X sentence",
+  "prediction_split": "5-fold StratifiedGroupKFold; exact question held out",
+  "domain_shift_diagnostics": {
+    "sentence_z_abs_gt_3_fraction": 0.0,
+    "sentence_z_abs_gt_5_fraction": 0.0,
+    "onset_z_abs_gt_3_fraction": 0.0,
+    "sentence_z_dimension_mean": [
+      -0.41683030128479004,
+      -0.41338515281677246,
+      0.15715421736240387,
+      0.2317279577255249,
+      -0.2449607104063034,
+      -0.13547715544700623,
+      -0.14482587575912476,
+      0.05286870896816254,
+      0.007639096584171057,
+      -0.07632339000701904,
+      -0.24946770071983337,
+      0.10632367432117462
+    ],
+    "sentence_z_dimension_std": [
+      0.3025871515274048,
+      0.3099478483200073,
+      0.33086350560188293,
+      0.33610060811042786,
+      0.21048399806022644,
+      0.24111364781856537,
+      0.3146602213382721,
+      0.29850026965141296,
+      0.2335803210735321,
+      0.2255277931690216,
+      0.33385857939720154,
+      0.2677213251590729
+    ]
+  },
+  "prediction_summary": [
+    {
+      "model": "option-axis endpoint",
+      "balanced_accuracy": 0.4864771885254578,
+      "roc_auc": 0.385150929748421,
+      "log_loss": 0.6956936076717527,
+      "brier": 0.2509951440821738
+    },
+    {
+      "model": "12D endpoint",
+      "balanced_accuracy": 0.6560680639356409,
+      "roc_auc": 0.7417544370346847,
+      "log_loss": 0.5977625104411157,
+      "brier": 0.20334988182541136
+    },
+    {
+      "model": "trajectory summary",
+      "balanced_accuracy": 0.45132052503440245,
+      "roc_auc": 0.39726456370629115,
+      "log_loss": 0.7187550070479785,
+      "brier": 0.2619362140693245
+    }
+  ],
+  "prediction_by_progress": [
+    {
+      "progress": 0.0,
+      "representation": "12D state",
+      "balanced_accuracy": 0.5612099079072721,
+      "roc_auc": 0.5949507780247698,
+      "log_loss": 0.6985705688231523,
+      "brier": 0.24929720791795115
+    },
+    {
+      "progress": 0.0,
+      "representation": "option-axis scalar",
+      "balanced_accuracy": 0.5,
+      "roc_auc": 0.4033026357573833,
+      "log_loss": 0.6954221299263048,
+      "brier": 0.2508324685074045
+    },
+    {
+      "progress": 0.25,
+      "representation": "12D state",
+      "balanced_accuracy": 0.47497882925796553,
+      "roc_auc": 0.499580995730567,
+      "log_loss": 0.6985526128656798,
+      "brier": 0.25230090170327857
+    },
+    {
+      "progress": 0.25,
+      "representation": "option-axis scalar",
+      "balanced_accuracy": 0.4834471260717688,
+      "roc_auc": 0.36851425496630325,
+      "log_loss": 0.6991990168021952,
+      "brier": 0.25265683860978033
+    },
+    {
+      "progress": 0.5,
+      "representation": "12D state",
+      "balanced_accuracy": 0.5509288663067641,
+      "roc_auc": 0.5906240076214672,
+      "log_loss": 0.6707130911977787,
+      "brier": 0.23862549224659133
+    },
+    {
+      "progress": 0.5,
+      "representation": "option-axis scalar",
+      "balanced_accuracy": 0.5002646342754313,
+      "roc_auc": 0.3755998376909777,
+      "log_loss": 0.6938776173472895,
+      "brier": 0.25013527282736275
+    },
+    {
+      "progress": 0.75,
+      "representation": "12D state",
+      "balanced_accuracy": 0.6310071980522918,
+      "roc_auc": 0.680134346000494,
+      "log_loss": 0.6286960560540155,
+      "brier": 0.21884746150232795
+    },
+    {
+      "progress": 0.75,
+      "representation": "option-axis scalar",
+      "balanced_accuracy": 0.4936620091034191,
+      "roc_auc": 0.38476059419215974,
+      "log_loss": 0.6939901161090534,
+      "brier": 0.2501887492482838
+    },
+    {
+      "progress": 1.0,
+      "representation": "12D state",
+      "balanced_accuracy": 0.6560680639356409,
+      "roc_auc": 0.7417544370346847,
+      "log_loss": 0.597762511434834,
+      "brier": 0.20334988223315795
+    },
+    {
+      "progress": 1.0,
+      "representation": "option-axis scalar",
+      "balanced_accuracy": 0.4864771885254578,
+      "roc_auc": 0.385150929748421,
+      "log_loss": 0.6956936078840348,
+      "brier": 0.25099514418153307
+    }
+  ],
+  "cluster_diagnostics": [
+    {
+      "k": 2,
+      "silhouette": 0.16751096782814587,
+      "AMI_question": 0.008783443470072861,
+      "AMI_persona": 0.02347983983792801,
+      "AMI_choice": 0.013775698900041015
+    },
+    {
+      "k": 3,
+      "silhouette": 0.1552489311286957,
+      "AMI_question": 0.01457808967459081,
+      "AMI_persona": 0.0220859197862883,
+      "AMI_choice": 0.012295323734857004
+    },
+    {
+      "k": 4,
+      "silhouette": 0.13233811626341935,
+      "AMI_question": 0.016577861336332513,
+      "AMI_persona": 0.03728724525199604,
+      "AMI_choice": 0.008472652035140837
+    },
+    {
+      "k": 5,
+      "silhouette": 0.12264954964074569,
+      "AMI_question": 0.0217601967289341,
+      "AMI_persona": 0.04203932769175037,
+      "AMI_choice": 0.013455977135241038
+    },
+    {
+      "k": 6,
+      "silhouette": 0.10930551216681912,
+      "AMI_question": 0.024787980317368282,
+      "AMI_persona": 0.0452654548984587,
+      "AMI_choice": 0.012340640743193038
+    }
+  ]
+}

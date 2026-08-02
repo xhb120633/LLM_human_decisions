@@ -1,0 +1,27 @@
+slides/_build/
+notebooks/cache/
+**/__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.env
+
+# Local model weights, CPU offload buffers, and multi-GB activation matrices.
+artifacts/qwen35_sentence_states/
+artifacts/model_cache/
+
+# Local research and rendering outputs are not part of the teaching release.
+artifacts/
+docs/
+slides/node_modules/
+slides/_build/
+slides/archive/
+slides/*.inspect.ndjson
+slides/llm_risky_decision_tutorial_draft_v*.pptx
+!slides/llm_risky_decision_tutorial_draft_v39_integrated_explanation.pptx
+notebooks/archive/
+notebooks/cache/
+notebooks/results/
+notebooks/*.qa.ipynb
+scripts/*
+!scripts/build_notebooks.py
+!scripts/build_explanation_notebook.py

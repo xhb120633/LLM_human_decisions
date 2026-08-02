@@ -1,0 +1,96 @@
+{
+  "analysis": "Cumulative state resampled at 0/25/50/75/100%; subtract onset; center each dimension within exact question before persona average.",
+  "top_relative_movement_dimensions": {
+    "Outcome-Focused Decision-Maker": [
+      {
+        "dimension": "maximum_gain",
+        "relative_movement": -0.13372390683841395
+      },
+      {
+        "dimension": "sum_two_largest_gains",
+        "relative_movement": -0.13352420221476866
+      },
+      {
+        "dimension": "minimum_loss",
+        "relative_movement": -0.12134463595456597
+      },
+      {
+        "dimension": "maximum_loss",
+        "relative_movement": -0.10877325988130962
+      }
+    ],
+    "Probability-Weighted Decision-Maker": [
+      {
+        "dimension": "maximum_gain",
+        "relative_movement": 0.37990050879750614
+      },
+      {
+        "dimension": "sum_two_largest_gains",
+        "relative_movement": 0.2620838155640455
+      },
+      {
+        "dimension": "maximum_loss",
+        "relative_movement": 0.22706093515456
+      },
+      {
+        "dimension": "minimum_loss",
+        "relative_movement": 0.22028235779424207
+      }
+    ],
+    "Rational Decision-Maker": [
+      {
+        "dimension": "probability_maximum_loss",
+        "relative_movement": 0.14114960381041503
+      },
+      {
+        "dimension": "maximum_gain",
+        "relative_movement": 0.10969277460404578
+      },
+      {
+        "dimension": "sum_two_largest_gains",
+        "relative_movement": 0.10309513194366747
+      },
+      {
+        "dimension": "probability_maximum_gain",
+        "relative_movement": 0.10120110435286422
+      }
+    ],
+    "Risk-Averse": [
+      {
+        "dimension": "maximum_gain",
+        "relative_movement": -0.12772665904287597
+      },
+      {
+        "dimension": "minimum_loss",
+        "relative_movement": -0.09999157168307635
+      },
+      {
+        "dimension": "sum_two_largest_gains",
+        "relative_movement": -0.09940621201065314
+      },
+      {
+        "dimension": "maximum_loss",
+        "relative_movement": -0.09891669410965089
+      }
+    ],
+    "Risk-Seeking": [
+      {
+        "dimension": "maximum_gain",
+        "relative_movement": -0.20441809241605266
+      },
+      {
+        "dimension": "probability_minimum_gain",
+        "relative_movement": -0.15571226774141705
+      },
+      {
+        "dimension": "probability_maximum_loss",
+        "relative_movement": -0.14006478153884513
+      },
+      {
+        "dimension": "sum_two_largest_gains",
+        "relative_movement": -0.11680488359609485
+      }
+    ]
+  },
+  "interpretation_boundary": "These are probe-derived dimension trends on full reasoning prefixes. They support descriptive persona-conditioned hypotheses, not causal sensitivity or recovery of five discrete mechanisms."
+}
