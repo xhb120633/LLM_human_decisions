@@ -1,0 +1,34 @@
+{
+  "model": "Qwen/Qwen3.5-9B",
+  "representation": "final sentence-end hidden state",
+  "question_identity": "exact question text",
+  "trials": 1368,
+  "participants": 72,
+  "questions": 19,
+  "folds": 5,
+  "seed": 2026,
+  "logistic_regression_c": 0.01,
+  "native_model_metrics": {
+    "accuracy": 0.9451754385964912,
+    "balanced_accuracy": 0.9335106382978724,
+    "log_loss": 0.2304895400607826,
+    "brier": 0.05413848603317721,
+    "roc_auc": 0.9986900603366148
+  },
+  "best_layers": {
+    "participant": {
+      "layer": 18,
+      "balanced_accuracy_mean": 0.9652739753864775,
+      "balanced_accuracy_std": 0.008049233394654992,
+      "log_loss_mean": 0.12276386948760895,
+      "brier_mean": 0.02977226259620717
+    },
+    "question": {
+      "layer": 15,
+      "balanced_accuracy_mean": 0.9421368075174106,
+      "balanced_accuracy_std": 0.03744898278729686,
+      "log_loss_mean": 0.15597022464148663,
+      "brier_mean": 0.044848432755857356
+    }
+  }
+}

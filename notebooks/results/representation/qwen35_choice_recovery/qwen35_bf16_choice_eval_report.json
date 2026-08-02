@@ -1,0 +1,9 @@
+{
+  "source_predictions": "qwen35_bf16_full_predictions.npz",
+  "n_trials": 1368,
+  "decision_threshold": 0.5,
+  "balanced_accuracy": 0.9335106382978724,
+  "accuracy": 0.9451754385964912,
+  "log_loss": 0.2304895400607826,
+  "note": "Choice word and persona label were masked; metrics were recomputed from cached p_b and labels arrays."
+}

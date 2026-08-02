@@ -1,0 +1,45 @@
+{
+  "question_id": "Q04",
+  "question": "Which option do you prefer? Option A: -6000.0 dollars with 25.0 % chance, 0.0 dollars with 75.0 % chance. Option B: -4000.0 dollars with 25.0 % chance, -2000.0 dollars with 25.0 % chance, 0.0 dollars with 50.0 % chance.",
+  "layer": 15,
+  "trials": 72,
+  "sentence_states": 659,
+  "choice_counts": {
+    "0": 37,
+    "1": 35
+  },
+  "choice_rate_b_by_persona": {
+    "Outcome-Focused Decision-Maker": 0.5714285714285714,
+    "Probability-Weighted Decision-Maker": 0.8571428571428571,
+    "Rational Decision-Maker": 0.8571428571428571,
+    "Risk-Averse": 0.2,
+    "Risk-Seeking": 0.0
+  },
+  "shared_onset": true,
+  "geometry_preprocessing": "subtract global layer mean, then L2 normalize, then cosine distance",
+  "mds": {
+    "kruskal_stress_1": 0.4867492321784042,
+    "positive_eigenvalue_share_2d": 0.31516148616182355
+  },
+  "normalized_progress": [
+    0.0,
+    0.14285714285714285,
+    0.2857142857142857,
+    0.42857142857142855,
+    0.5714285714285714,
+    0.7142857142857142,
+    0.8571428571428571,
+    1.0
+  ],
+  "high_dimensional_persona_centroid_cosine_distance": [
+    -2.220446049250313e-16,
+    0.29547395584910713,
+    0.521542797581914,
+    0.5667937269258203,
+    0.6759998223640713,
+    0.5582170166728991,
+    0.3939032278187722,
+    0.02899343344927887
+  ],
+  "warning": "MDS axes and path curvature are descriptive. The high-dimensional distance curve is the non-projected validation."
+}
