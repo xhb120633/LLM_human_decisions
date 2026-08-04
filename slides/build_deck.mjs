@@ -5,7 +5,7 @@ import { Presentation, PresentationFile } from "@oai/artifact-tool";
 import sharp from "sharp";
 
 const WORK = path.dirname(fileURLToPath(import.meta.url));
-const OUT = path.join(WORK, "llm_risky_decision_tutorial_draft_v41_formal_arrows_temporal_trajectory.pptx");
+const OUT = path.join(WORK, "llm_risky_decision_tutorial_draft_v42_typography_coherence.pptx");
 const BUILD_DIR = path.join(WORK, "_build");
 const PREVIEW = path.join(BUILD_DIR, "preview");
 const LAYOUT = path.join(BUILD_DIR, "layout");
@@ -32,6 +32,23 @@ const C = {
   coral: "#8A3B35",
   green: "#3F684B",
   white: "#FFFFFF",
+};
+
+// One teaching-deck type scale for every table and chart.
+// Dense visualizations may use the compact tier, but never invent a new size locally.
+const TYPE = {
+  tableHeader: 18,
+  tableRowLabel: 21,
+  tableBody: 20,
+  tableCompact: 18,
+  chartTitle: 23,
+  chartSubtitle: 16,
+  chartAxis: 14,
+  chartLegend: 14,
+  chartValue: 14,
+  heatmapHeader: 14,
+  heatmapCell: 14,
+  heatmapRowLabel: 16,
 };
 
 const STAGES = ["Foundations", "Prediction", "Representation", "Explanation", "Discovery"];
@@ -90,15 +107,15 @@ async function addStaticLineChart(slide, cfg) {
   const grid = ticks.map((v) => {
     const yy = sy(v);
     return `<line x1="${margin.left}" y1="${yy}" x2="${margin.left + plotW}" y2="${yy}" stroke="${C.line}" stroke-width="1"/>` +
-      `<text x="${margin.left - 10}" y="${yy + 5}" text-anchor="end" font-family="Arial" font-size="13" fill="${C.muted}">${xmlEscape(yFormat(v))}</text>`;
+      `<text x="${margin.left - 10}" y="${yy + 5}" text-anchor="end" font-family="Arial" font-size="${TYPE.chartAxis}" fill="${C.muted}">${xmlEscape(yFormat(v))}</text>`;
   }).join("");
-  const xTicks = categories.map((c, i) => `<text x="${sx(i)}" y="${margin.top + plotH + 24}" text-anchor="middle" font-family="Arial" font-size="13" fill="${C.ink}">${xmlEscape(c)}</text>`).join("");
+  const xTicks = categories.map((c, i) => `<text x="${sx(i)}" y="${margin.top + plotH + 24}" text-anchor="middle" font-family="Arial" font-size="${TYPE.chartAxis}" fill="${C.ink}">${xmlEscape(c)}</text>`).join("");
   const chartLines = series.map((entry, seriesIndex) => {
     const points = entry.values.map((v, i) => `${sx(i)},${sy(v)}`).join(" ");
     const dash = entry.dash ? ` stroke-dasharray="${entry.dash}"` : "";
     const path = `<polyline points="${points}" fill="none" stroke="${entry.color}" stroke-width="${entry.width ?? 3}" stroke-linejoin="round" stroke-linecap="round"${dash}/>`;
     const markers = entry.markers === false ? "" : entry.values.map((v, i) => `<circle cx="${sx(i)}" cy="${sy(v)}" r="${entry.markerSize ?? 4}" fill="${C.white}" stroke="${entry.color}" stroke-width="2"/>`).join("");
-    const labels = labelSeries.includes(seriesIndex) ? entry.values.map((v, i) => `<text x="${sx(i)}" y="${Math.max(13, sy(v) - 10)}" text-anchor="middle" font-family="Arial" font-size="13" font-weight="700" fill="${entry.color}">${xmlEscape(v.toFixed(3))}</text>`).join("") : "";
+    const labels = labelSeries.includes(seriesIndex) ? entry.values.map((v, i) => `<text x="${sx(i)}" y="${Math.max(14, sy(v) - 10)}" text-anchor="middle" font-family="Arial" font-size="${TYPE.chartValue}" font-weight="700" fill="${entry.color}">${xmlEscape(v.toFixed(3))}</text>`).join("") : "";
     return path + markers + labels;
   }).join("");
   const named = series.filter((entry) => entry.name);
@@ -107,7 +124,7 @@ async function addStaticLineChart(slide, cfg) {
     const xx = margin.left + i * itemW;
     const yy = h - 22;
     return `<line x1="${xx}" y1="${yy - 5}" x2="${xx + 26}" y2="${yy - 5}" stroke="${entry.color}" stroke-width="3"/>` +
-      `<text x="${xx + 34}" y="${yy}" font-family="Arial" font-size="13" fill="${C.body}">${xmlEscape(entry.name)}</text>`;
+      `<text x="${xx + 34}" y="${yy}" font-family="Arial" font-size="${TYPE.chartLegend}" fill="${C.body}">${xmlEscape(entry.name)}</text>`;
   }).join("") : "";
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w * 2}" height="${h * 2}" viewBox="0 0 ${w} ${h}">
     <rect width="${w}" height="${h}" fill="${C.white}"/>
@@ -252,8 +269,8 @@ function rowsSlide(p, cfg) {
   const rowH = cfg.rowH ?? 78;
   cfg.rows.forEach((r, i) => {
     const y = startY + i * rowH;
-    text(s, r[0], 84, y + 10, 310, 34, { size: 23, bold: true, color: cfg.useRowColors ? (r[2] ?? C.blue) : C.blue });
-    text(s, r[1], 424, y + 10, 730, 40, { size: 22, color: C.body });
+    text(s, r[0], 84, y + 4, 310, rowH - 16, { size: TYPE.tableRowLabel, autoFit: "none", bold: true, color: cfg.useRowColors ? (r[2] ?? C.blue) : C.blue, valign: "middle", lineSpacing: 1.1 });
+    text(s, r[1], 424, y + 4, 730, rowH - 16, { size: TYPE.tableBody, autoFit: "none", color: C.body, valign: "middle", lineSpacing: 1.1 });
     shape(s, "rect", 84, y + rowH - 8, 1070, 1, C.line);
   });
   if (cfg.takeaway) academicPoint(s, cfg.takeaway, 548, 21);
@@ -395,9 +412,9 @@ function notebookTransition(p, cfg) {
   const s = newSlide(p);
   header(s, "What would count as understanding a human decision?", "Core question", 3, undefined);
 
-  text(s, "Claim", 84, 202, 180, 24, { size: 16, bold: true, color: C.muted });
-  text(s, "Question", 310, 202, 330, 24, { size: 16, bold: true, color: C.muted });
-  text(s, "Evidence required", 660, 202, 500, 24, { size: 16, bold: true, color: C.muted });
+  text(s, "Claim", 84, 202, 180, 28, { size: TYPE.tableHeader, autoFit: "none", bold: true, color: C.muted });
+  text(s, "Question", 310, 202, 330, 28, { size: TYPE.tableHeader, autoFit: "none", bold: true, color: C.muted });
+  text(s, "Evidence required", 660, 202, 500, 28, { size: TYPE.tableHeader, autoFit: "none", bold: true, color: C.muted });
 
   const levels = [
     ["Description", "What happened?", "Summarize regularities in observed choices or reports."],
@@ -409,10 +426,10 @@ function notebookTransition(p, cfg) {
   const levelColors = [C.muted, C.blue, C.purple, C.orange, C.coral];
   levels.forEach((r, i) => {
     const y = 242 + i * 67;
-    text(s, String(i + 1), 84, y + 3, 30, 28, { size: 18, bold: true, color: levelColors[i] });
-    text(s, r[0], 126, y, 170, 34, { size: 22, bold: true, color: levelColors[i] });
-    text(s, r[1], 310, y, 330, 34, { size: 21, bold: true, color: C.ink });
-    text(s, r[2], 660, y, 500, 46, { size: 19, color: C.body, lineSpacing: 1.08 });
+    text(s, String(i + 1), 84, y + 3, 30, 40, { size: TYPE.tableCompact, autoFit: "none", bold: true, color: levelColors[i], valign: "middle" });
+    text(s, r[0], 126, y, 170, 46, { size: TYPE.tableBody, autoFit: "none", bold: true, color: levelColors[i], valign: "middle" });
+    text(s, r[1], 310, y, 330, 46, { size: TYPE.tableBody, autoFit: "none", bold: true, color: C.ink, valign: "middle" });
+    text(s, r[2], 660, y, 500, 46, { size: TYPE.tableCompact, autoFit: "none", color: C.body, lineSpacing: 1.08, valign: "middle" });
     if (i < levels.length - 1) shape(s, "rect", 84, y + 54, 1076, 1, C.line);
   });
 
@@ -434,8 +451,8 @@ function notebookTransition(p, cfg) {
   text(s, "B   -3 for sure", 146, 420, 480, 66, { size: 28, bold: true, color: C.orange, lineSpacing: 1.08 });
   text(s, "Observed choice is hidden until evaluation.", 116, 492, 480, 24, { size: 18, color: C.muted });
   text(s, "Evidence added at each step", 766, 218, 410, 34, { size: 25, bold: true, color: C.blue });
-  text(s, "Modeling step", 782, 270, 208, 24, { size: 16, bold: true, color: C.muted });
-  text(s, "Evidence available", 1002, 270, 174, 24, { size: 16, bold: true, color: C.muted });
+  text(s, "Modeling step", 782, 268, 208, 28, { size: TYPE.tableHeader, autoFit: "none", bold: true, color: C.muted });
+  text(s, "Evidence available", 1002, 268, 174, 28, { size: TYPE.tableHeader, autoFit: "none", bold: true, color: C.muted });
   const levels = [
     ["Zero-shot prediction", "Current trial only", C.blue],
     ["Participant history", "Same person's past trials", C.purple],
@@ -445,8 +462,8 @@ function notebookTransition(p, cfg) {
   levels.forEach((v, i) => {
     const y = 310 + i * 62;
     shape(s, "rect", 782, y + 9, 8, 8, v[2]);
-    text(s, v[0], 808, y, 190, 34, { size: 20, bold: true, color: C.ink });
-    text(s, v[1], 1002, y, 174, 42, { size: 18, color: C.body, lineSpacing: 1.05 });
+    text(s, v[0], 808, y, 190, 42, { size: TYPE.tableCompact, autoFit: "none", bold: true, color: C.ink, valign: "middle" });
+    text(s, v[1], 1002, y, 174, 42, { size: TYPE.tableCompact, autoFit: "none", color: C.body, lineSpacing: 1.05, valign: "middle" });
     if (i < levels.length - 1) shape(s, "rect", 782, y + 49, 394, 1, C.line);
   });
   notes(s, "P025 is an anonymized participant in the bundled public teaching slice. Trial 21 stays fixed through the worked example.");
@@ -537,7 +554,7 @@ for (let revealStage = 1; revealStage <= 2; revealStage++) {
   shape(s, "rect", 446, 272, 216, 116, C.white, C.line, 1.25);
   for (let i = 0; i < 5; i++) {
     shape(s, "rect", 446, 272 + i * 23, 216, 1, C.line);
-    text(s, i === 2 ? "selected row" : "vector row", 464, 278 + i * 23, 170, 18, { size: 14, bold: i === 2, color: i === 2 ? C.orange : C.muted, typeface: MONO });
+    text(s, i === 2 ? "selected row" : "vector row", 464, 278 + i * 23, 170, 18, { size: TYPE.chartAxis, autoFit: "none", bold: i === 2, color: i === 2 ? C.orange : C.muted, typeface: MONO });
   }
   arrow(s, 692, 292, 74, 58);
   text(s, "Dense vector", 792, 220, 300, 34, { size: 22, bold: true, color: C.teal });
@@ -623,11 +640,11 @@ for (let revealStage = 1; revealStage <= 2; revealStage++) {
   });
   shape(s, "rect", 642, 212, 1, 344, C.line);
   text(s, "Other generation controls", 692, 210, 430, 36, { size: 24, bold: true, color: C.ink });
-  const controls = [["Top-k", "Keep only the k highest-scoring tokens."], ["Top-p", "Keep the smallest set whose cumulative probability reaches p."], ["Penalties", "Repetition or frequency penalties lower scores for tokens that already appeared."], ["Random seed", "Makes a sampled path reproducible when the service supports it."]];
+  const controls = [["Top-k", "Keep the k highest-scoring tokens."], ["Top-p", "Keep the smallest set whose cumulative mass reaches p."], ["Penalties", "Lower scores for tokens that have already appeared."], ["Random seed", "Reproduce a sampled path when the service supports seeding."]];
   controls.forEach((r, i) => {
     const y = 270 + i * 72;
-    text(s, r[0], 692, y, 230, 28, { size: 20, bold: true, color: i < 2 ? C.orange : C.blue });
-    text(s, r[1], 922, y, 250, 48, { size: 18, color: C.body, lineSpacing: 1.14 });
+    text(s, r[0], 692, y, 230, 48, { size: TYPE.tableBody, autoFit: "none", bold: true, color: i < 2 ? C.orange : C.blue, valign: "middle" });
+    text(s, r[1], 922, y, 250, 48, { size: TYPE.tableCompact, autoFit: "none", color: C.body, lineSpacing: 1.12, valign: "middle" });
     if (i < controls.length - 1) shape(s, "rect", 692, y + 56, 480, 1, C.line);
   });
   academicPoint(s, "For A/B behavioral prediction, read and re-normalize the label log probabilities; report generation settings separately.", 582, 19);
@@ -642,20 +659,20 @@ for (let revealStage = 1; revealStage <= 2; revealStage++) {
   const s = newSlide(p);
   header(s, "Prediction methods test different decision questions", "Prediction overview", 9, 1);
   const cols = [84, 382, 690, 920], widths = [270, 280, 202, 266];
-  ["Decision question", "Evidence available", "Technical move", "What the result can support"].forEach((h, i) => text(s, h, cols[i], 208, widths[i], 42, { size: 17, bold: true, color: C.muted }));
+  ["Decision question", "Evidence available", "Technical move", "What the result can support"].forEach((h, i) => text(s, h, cols[i], 208, widths[i], 42, { size: TYPE.tableHeader, autoFit: "none", bold: true, color: C.muted, valign: "middle" }));
   shape(s, "rect", 84, 252, 1112, 1.5, C.line);
   const rows = [
     ["Can option attributes predict a new choice?", "Current trial only", "Use the base model as-is\n(zero-shot)", "A population-level baseline and sensitivity to task framing", C.blue],
     ["Do this person's earlier choices improve later predictions?", "The same participant's prior trials", "Add history to the context\n(in-context learning)", "Within-person adaptation and evidence for individual differences", C.orange],
-    ["Can labeled choices teach a stable task mapping?", "Training choices from other participants", "Update model parameters\n(supervised fine-tuning)", "Task-level population regularities that generalize to held-out people", C.coral],
+    ["Can labeled choices teach a stable task mapping?", "Training choices from other participants", "Fine-tune parameters\non labeled choices", "Task-level population regularities that generalize to held-out people", C.coral],
   ];
   rows.slice(0, revealStage === 1 ? 1 : rows.length).forEach((r, i) => {
     const y = 268 + i * 96;
     shape(s, "rect", 84, y + 10, 4, 60, r[4]);
-    text(s, r[0], cols[0] + 18, y, widths[0] - 18, 76, { size: 18, bold: true, color: C.ink, lineSpacing: 1.12 });
-    text(s, r[1], cols[1], y, widths[1], 76, { size: 17, color: C.body, lineSpacing: 1.12 });
-    text(s, r[2], cols[2], y, widths[2], 76, { size: 17, bold: true, color: r[4], lineSpacing: 1.12 });
-    text(s, r[3], cols[3], y, widths[3], 76, { size: 17, color: C.body, lineSpacing: 1.12 });
+    text(s, r[0], cols[0] + 18, y, widths[0] - 18, 76, { size: TYPE.tableCompact, autoFit: "none", bold: true, color: C.ink, lineSpacing: 1.12, valign: "middle" });
+    text(s, r[1], cols[1], y, widths[1], 76, { size: TYPE.tableCompact, autoFit: "none", color: C.body, lineSpacing: 1.12, valign: "middle" });
+    text(s, r[2], cols[2], y, widths[2], 76, { size: TYPE.tableCompact, autoFit: "none", bold: true, color: r[4], lineSpacing: 1.12, valign: "middle" });
+    text(s, r[3], cols[3], y, widths[3], 76, { size: TYPE.tableCompact, autoFit: "none", color: C.body, lineSpacing: 1.12, valign: "middle" });
     shape(s, "rect", 84, y + 82, 1112, 1, C.line);
   });
   academicPoint(s, revealStage === 1 ? "Start with the current trial: can option information alone predict a new choice?" : "These methods are not a ladder of understanding; they test different sources of predictive information.", 566, 20);
@@ -770,9 +787,9 @@ notebookTransition(p, {
   ];
   items.forEach((v, i) => {
     const y = 226 + i * 78;
-    text(s, String(i + 1), 84, y, 48, 38, { size: 27, bold: true, color: C.blue });
-    text(s, v[0], 160, y, 250, 38, { size: 25, bold: true, color: C.ink });
-    text(s, v[1], 460, y, 650, 38, { size: 23, color: C.body });
+    text(s, String(i + 1), 84, y, 48, 46, { size: TYPE.tableRowLabel, autoFit: "none", bold: true, color: C.blue, valign: "middle" });
+    text(s, v[0], 160, y, 250, 46, { size: TYPE.tableRowLabel, autoFit: "none", bold: true, color: C.ink, valign: "middle" });
+    text(s, v[1], 460, y, 650, 46, { size: TYPE.tableBody, autoFit: "none", color: C.body, valign: "middle" });
     shape(s, "rect", 160, y + 54, 950, 1, C.line);
   });
   academicPoint(s, "Scaling changes the claim from one anecdote to generalization across trials and people.", 570);
@@ -784,9 +801,9 @@ predictionStep(p, 2, "Test whether personal history reveals individual differenc
 {
   const s = newSlide(p);
   header(s, "Use personal history to predict later choices", "Prediction / in-context learning", 18, 1, "Public teaching slice / P025 trials 1-5");
-  text(s, "Earlier trial", 84, 214, 160, 30, { size: 18, bold: true, color: C.muted });
-  text(s, "Options", 282, 214, 650, 30, { size: 18, bold: true, color: C.muted });
-  text(s, "Choice", 1060, 214, 100, 30, { size: 18, bold: true, color: C.muted, align: "right" });
+  text(s, "Earlier trial", 84, 214, 160, 30, { size: TYPE.tableHeader, autoFit: "none", bold: true, color: C.muted });
+  text(s, "Options", 282, 214, 650, 30, { size: TYPE.tableHeader, autoFit: "none", bold: true, color: C.muted });
+  text(s, "Choice", 1060, 214, 100, 30, { size: TYPE.tableHeader, autoFit: "none", bold: true, color: C.muted, align: "right" });
   const histories = [
     ["1", "A: 5% of -36; otherwise -18   |   B: 1% of 1; otherwise -8", "A"],
     ["2", "A: 10% of -7; otherwise 32   |   B: 29 for sure", "B"],
@@ -796,9 +813,9 @@ predictionStep(p, 2, "Test whether personal history reveals individual differenc
   ];
   histories.forEach((v, i) => {
     const y = 266 + i * 54;
-    text(s, v[0], 84, y, 120, 30, { size: 21, bold: true, color: C.blue });
-    text(s, v[1], 282, y, 720, 34, { size: 19, color: C.body });
-    text(s, v[2], 1080, y, 70, 30, { size: 22, bold: true, color: C.orange, align: "right" });
+    text(s, v[0], 84, y, 120, 30, { size: TYPE.tableCompact, autoFit: "none", bold: true, color: C.blue });
+    text(s, v[1], 282, y, 720, 34, { size: TYPE.tableCompact, autoFit: "none", color: C.body });
+    text(s, v[2], 1080, y, 70, 30, { size: TYPE.tableBody, autoFit: "none", bold: true, color: C.orange, align: "right" });
     shape(s, "rect", 84, y + 40, 1066, 1, C.line);
   });
   academicPoint(s, "The target remains trial 21; history length controls how many earlier P025 trials enter context.", 566);
@@ -808,20 +825,20 @@ predictionStep(p, 2, "Test whether personal history reveals individual differenc
 {
   const s = newSlide(p);
   header(s, "A control matrix identifies why examples helped", "Prediction / in-context learning diagnosis", 19, 1, "Participant-level in-context learning controls");
-  text(s, "Trial-choice pairing intact", 424, 212, 300, 30, { size: 22, bold: true, color: C.blue, align: "center" });
-  text(s, "Choices shuffled across trials", 808, 212, 330, 30, { size: 22, bold: true, color: C.blue, align: "center" });
-  text(s, "P025's other trials", 84, 278, 240, 34, { size: 23, bold: true, color: C.ink });
-  text(s, "Another participant's trials", 84, 388, 260, 58, { size: 23, bold: true, color: C.ink });
+  text(s, "Trial-choice pairing intact", 424, 212, 300, 34, { size: TYPE.tableHeader, autoFit: "none", bold: true, color: C.blue, align: "center", valign: "middle" });
+  text(s, "Choices shuffled across trials", 808, 212, 330, 34, { size: TYPE.tableHeader, autoFit: "none", bold: true, color: C.blue, align: "center", valign: "middle" });
+  text(s, "P025's other trials", 84, 278, 240, 54, { size: TYPE.tableBody, autoFit: "none", bold: true, color: C.ink, valign: "middle" });
+  text(s, "Another participant's trials", 84, 388, 260, 58, { size: TYPE.tableBody, autoFit: "none", bold: true, color: C.ink, valign: "middle" });
   shape(s, "rect", 364, 252, 786, 1, C.line);
   shape(s, "rect", 364, 358, 786, 1, C.line);
   shape(s, "rect", 364, 466, 786, 1, C.line);
   shape(s, "rect", 364, 252, 1, 215, C.line);
   shape(s, "rect", 758, 252, 1, 215, C.line);
   shape(s, "rect", 1150, 252, 1, 215, C.line);
-  text(s, "same person + correct links", 408, 286, 306, 34, { size: 21, color: C.body, align: "center" });
-  text(s, "same choices, links broken", 804, 286, 300, 34, { size: 21, color: C.body, align: "center" });
-  text(s, "person changed", 408, 394, 306, 34, { size: 21, color: C.body, align: "center" });
-  text(s, "person + links changed", 804, 394, 300, 34, { size: 21, color: C.body, align: "center" });
+  text(s, "same person + correct links", 408, 286, 306, 54, { size: TYPE.tableCompact, autoFit: "none", color: C.body, align: "center", valign: "middle" });
+  text(s, "same choices, links broken", 804, 286, 300, 54, { size: TYPE.tableCompact, autoFit: "none", color: C.body, align: "center", valign: "middle" });
+  text(s, "person changed", 408, 394, 306, 54, { size: TYPE.tableCompact, autoFit: "none", color: C.body, align: "center", valign: "middle" });
+  text(s, "person + links changed", 804, 394, 300, 54, { size: TYPE.tableCompact, autoFit: "none", color: C.body, align: "center", valign: "middle" });
   text(s, "Column contrast: trial-choice correspondence", 364, 482, 430, 28, { size: 18, color: C.muted });
   text(s, "Row contrast: participant specificity", 780, 482, 370, 28, { size: 18, color: C.muted, align: "right" });
   shape(s, "rect", 84, 526, 1066, 1, C.line);
@@ -853,7 +870,7 @@ notebookTransition(p, {
 {
   const s = newSlide(p);
   header(s, "A first attempt produces a suspicious learning curve", "Hands-on / failed pilot", 23, 1, "Unbalanced pipeline check / 2 participants x 4 targets");
-  text(s, "Mean held-out log loss", 84, 214, 360, 34, { size: 24, bold: true, color: C.blue });
+  text(s, "Mean held-out log loss", 84, 214, 360, 34, { size: TYPE.chartTitle, bold: true, color: C.blue });
 
   await addStaticLineChart(s, {
     x: 82, y: 248, w: 966, h: 294,
@@ -868,9 +885,9 @@ notebookTransition(p, {
   });
 
   shape(s, "rect", 736, 222, 34, 2, C.mutedLight);
-  text(s, "Random choice: ln(2) = 0.693", 782, 208, 250, 26, { size: 16, bold: true, color: C.muted });
+  text(s, "Random choice: ln(2) = 0.693", 782, 208, 250, 26, { size: TYPE.chartLegend, bold: true, color: C.muted });
 
-  text(s, "Number of earlier P025/P026 trials in context", 356, 548, 430, 28, { size: 19, color: C.body, align: "center" });
+  text(s, "Number of earlier P025/P026 trials in context", 356, 548, 430, 28, { size: TYPE.chartSubtitle, color: C.body, align: "center" });
   text(s, "Targets:\n7 B / 1 A\n\n20 earlier trials:\n15 B / 25 A", 1072, 278, 132, 170, { size: 18, bold: true, color: C.coral, align: "center", lineSpacing: 1.15 });
   academicPoint(s, "History length is confounded with label balance; do not conclude that more context improves prediction.", 588, 20);
   notes(s, "Keep this failed pilot. The 87.5% B target slice conflicts with the A-heavy histories and motivates balancing before interpreting history length. The chart is generated directly from the six recorded mean log-loss values.");
@@ -924,22 +941,22 @@ notebookTransition(p, {
     });
   }
 
-  text(s, "Accuracy", 72, 208, 510, 30, { size: 23, bold: true, color: C.blue });
-  text(s, "Held-out accuracy", 72, 240, 510, 22, { size: 15, color: C.muted });
-  text(s, "Log loss", 690, 208, 510, 30, { size: 23, bold: true, color: C.blue });
-  text(s, "Lower is better", 690, 240, 510, 22, { size: 15, color: C.muted });
+  text(s, "Accuracy", 72, 208, 510, 30, { size: TYPE.chartTitle, bold: true, color: C.blue });
+  text(s, "Held-out accuracy", 72, 240, 510, 22, { size: TYPE.chartSubtitle, color: C.muted });
+  text(s, "Log loss", 690, 208, 510, 30, { size: TYPE.chartTitle, bold: true, color: C.blue });
+  text(s, "Lower is better", 690, 240, 510, 22, { size: TYPE.chartSubtitle, color: C.muted });
 
   await addLearningChart(72, "accuracy", 0.2, 0.9, 0.2, 0.5);
   await addLearningChart(690, "loss", 0.5, 1.6, 0.3, Math.log(2));
 
-  text(s, "Number of balanced earlier trials in context", 158, 552, 350, 22, { size: 14, color: C.body, align: "center" });
-  text(s, "Number of balanced earlier trials in context", 776, 552, 350, 22, { size: 14, color: C.body, align: "center" });
+  text(s, "Number of balanced earlier trials in context", 158, 552, 350, 22, { size: TYPE.chartSubtitle, color: C.body, align: "center" });
+  text(s, "Number of balanced earlier trials in context", 776, 552, 350, 22, { size: TYPE.chartSubtitle, color: C.body, align: "center" });
 
   const legendX = 810;
   series.forEach((entry, i) => {
     const x = legendX + i * 116;
     shape(s, "rect", x, 212, 28, 3, entry.color);
-    text(s, entry.name, x + 36, 202, 68, 22, { size: 15, bold: true, color: entry.color });
+    text(s, entry.name, x + 36, 202, 68, 22, { size: TYPE.chartLegend, bold: true, color: entry.color });
   });
 
   academicPoint(s, "Adding personal history helps P026, hurts P028, and peaks at an intermediate history length for P031.", 592, 20);
@@ -988,20 +1005,20 @@ rowsSlide(p, {
 {
   const s = newSlide(p);
   header(s, "A correct prediction can still have competing explanations", "Prediction checkpoint", 30, 1);
-  text(s, "Current-trial prediction, participant history, and fine-tuning can agree on the same held-out choice.", 84, 208, 1020, 38, { size: 27, bold: true, color: C.ink });
-  text(s, "Candidate driver", 84, 274, 250, 30, { size: 18, bold: true, color: C.muted });
-  text(s, "Decisive manipulation", 382, 274, 390, 30, { size: 18, bold: true, color: C.muted });
-  text(s, "Expected diagnostic change", 824, 274, 330, 30, { size: 18, bold: true, color: C.muted });
+  text(s, "Current-trial prediction, participant history, and fine-tuning can agree on the same held-out choice.", 84, 202, 1020, 54, { size: 24, bold: true, color: C.ink, valign: "middle", autoFit: "none" });
+  text(s, "Candidate driver", 84, 274, 250, 30, { size: TYPE.tableHeader, autoFit: "none", bold: true, color: C.muted });
+  text(s, "Decisive manipulation", 382, 274, 390, 30, { size: TYPE.tableHeader, autoFit: "none", bold: true, color: C.muted });
+  text(s, "Expected diagnostic change", 824, 274, 330, 30, { size: TYPE.tableHeader, autoFit: "none", bold: true, color: C.muted });
   const tests = [
     ["Certainty cue", "Remove certainty or change the worst outcome", "Prediction should move"],
-    ["Cross-trial response pattern", "Shuffle choices across P025's trials or use another person", "the history-based gain should shrink"],
+    ["History correspondence", "Shuffle choices across P025's trials or use another person", "the history-based gain should shrink"],
     ["Concave utility", "Vary probability and payoff systematically", "Choice curve should change"],
   ];
   tests.forEach((v, i) => {
     const y = 326 + i * 78;
-    text(s, v[0], 84, y, 250, 34, { size: 22, bold: true, color: C.blue });
-    text(s, v[1], 382, y, 390, 48, { size: 21, color: C.body });
-    text(s, v[2], 824, y, 330, 48, { size: 21, color: C.body });
+    text(s, v[0], 84, y, 250, 48, { size: TYPE.tableBody, autoFit: "none", bold: true, color: C.blue, valign: "middle" });
+    text(s, v[1], 382, y, 390, 48, { size: TYPE.tableCompact, autoFit: "none", color: C.body, valign: "middle", lineSpacing: 1.1 });
+    text(s, v[2], 824, y, 330, 48, { size: TYPE.tableCompact, autoFit: "none", color: C.body, valign: "middle", lineSpacing: 1.1 });
     shape(s, "rect", 84, y + 58, 1070, 1, C.line);
   });
   academicPoint(s, "Prediction creates candidates; diagnostic manipulations separate them.", 568);
@@ -1124,11 +1141,11 @@ for (const revealStage of [2]) {
 {
   const s = newSlide(p);
   header(s, "Can the hidden state recover the masked choice?", "Representation / choice probe", 38, 2, "A held-out linear readout anchors the state to behavior");
-  text(s, "final sentence-end state h_l(T)", 84, 244, 300, 60, { size: 25, bold: true, color: C.purple, align: "center", valign: "middle", fill: C.faint, line: C.line, lineWidth: 1 });
+  text(s, "final sentence-end state h_l(T)", 84, 244, 300, 60, { size: 23, bold: true, color: C.purple, align: "center", valign: "middle", fill: C.faint, line: C.line, lineWidth: 1, autoFit: "none" });
   arrow(s, 398, 250, 64, 48);
   text(s, "standardize +\nlogistic regression", 476, 244, 270, 60, { size: 23, bold: true, color: C.blue, align: "center", valign: "middle", fill: C.faint, line: C.line, lineWidth: 1 });
   arrow(s, 760, 250, 64, 48);
-  text(s, "predict A versus B", 838, 244, 300, 60, { size: 25, bold: true, color: C.ink, align: "center", valign: "middle", fill: C.faint, line: C.line, lineWidth: 1 });
+  text(s, "predict A versus B", 838, 244, 300, 60, { size: 23, bold: true, color: C.ink, align: "center", valign: "middle", fill: C.faint, line: C.line, lineWidth: 1, autoFit: "none" });
 
   shape(s, "rect", 84, 348, 1096, 1.5, C.line);
   const probeRows = [
@@ -1139,8 +1156,8 @@ for (const revealStage of [2]) {
   ];
   probeRows.forEach((row, i) => {
     const y = 376 + i * 44;
-    text(s, row[0], 118, y, 220, 28, { size: 18, bold: true, color: C.muted });
-    text(s, row[1], 354, y, 760, 30, { size: 21, color: C.body });
+    text(s, row[0], 118, y, 220, 30, { size: TYPE.tableHeader, autoFit: "none", bold: true, color: C.muted, valign: "middle" });
+    text(s, row[1], 354, y, 760, 30, { size: TYPE.tableBody, autoFit: "none", color: C.body, valign: "middle" });
   });
   academicPoint(s, "Success would show linearly accessible choice information - not that the model uses a linear decision rule.", 584, 19);
   notes(s, "Introduce one evidence gate at a time. The choice probe asks whether the masked choice is linearly decodable from Qwen's final state at each layer. Standardization and logistic regression are fitted inside the training split, and complete questions are held out. A successful probe establishes accessibility, not mechanism or causal use.\n[Sources]\n- scripts/analyze_layerwise_choice_decoding.py.\n- notebooks/results/representation/layerwise_choice_decoding_v2/layerwise_probe_report.json.");
@@ -1149,7 +1166,7 @@ for (const revealStage of [2]) {
 {
   const s = newSlide(p);
   header(s, "Choice signal peaks near layer 15", "Representation / first test", 36, 2, "Choice word masked / questions held out during evaluation");
-  text(s, "Balanced accuracy on held-out risky-choice questions", 84, 204, 760, 34, { size: 27, bold: true, color: C.ink });
+  text(s, "Balanced accuracy on held-out risky-choice questions", 84, 204, 760, 34, { size: TYPE.chartTitle, bold: true, color: C.ink });
   await addStaticLineChart(s, {
     x: 82, y: 252, w: 820, h: 286,
     categories: ["0", "4", "8", "12", "15", "18", "24", "32"],
@@ -1174,10 +1191,10 @@ for (const revealStage of [2]) {
   const prefixRows = [["t = 0", "question only", "h(0)"], ["t = 1", "question + sentence 1", "h(1)"], ["t = 2", "question + sentences 1-2", "h(2)"], ["t = 3", "question + sentences 1-3", "h(3)"]];
   prefixRows.forEach((v, i) => {
     const y = 212 + i * 78;
-    text(s, v[0], 84, y + 8, 100, 30, { size: 20, bold: true, color: C.muted });
-    text(s, v[1], 214, y, 560, 46, { size: 25, color: C.ink, valign: "middle" });
+    text(s, v[0], 84, y, 100, 46, { size: TYPE.tableCompact, autoFit: "none", bold: true, color: C.muted, valign: "middle" });
+    text(s, v[1], 214, y, 560, 46, { size: TYPE.tableBody, autoFit: "none", color: C.ink, valign: "middle" });
     arrow(s, 788, y - 2, 54, 50);
-    text(s, v[2], 870, y, 180, 46, { size: 27, bold: true, color: C.purple, valign: "middle", typeface: MONO });
+    text(s, v[2], 870, y, 180, 46, { size: TYPE.tableRowLabel, autoFit: "none", bold: true, color: C.purple, valign: "middle", typeface: MONO });
     if (i < prefixRows.length - 1) shape(s, "rect", 84, y + 58, 980, 1, C.line);
   });
   text(s, "At h(2), the model has seen sentence 1 and sentence 2 - never sentence 3.", 188, 538, 904, 38, { size: 23, bold: true, color: C.ink, align: "center" });
@@ -1211,7 +1228,7 @@ for (const revealStage of [2]) {
 {
   const s = newSlide(p);
   header(s, "Distance reveals divergence, not meaning", "Representation / geometry to interpretation", 39, 2, "Question 4 / layer 15 / original-state distance before semantic interpretation");
-  text(s, "Mean pairwise distance between persona trajectories", 84, 204, 760, 32, { size: 24, bold: true, color: C.ink });
+  text(s, "Mean pairwise distance between persona trajectories", 84, 204, 760, 32, { size: TYPE.chartTitle, bold: true, color: C.ink });
   await addStaticLineChart(s, {
     x: 82, y: 246, w: 760, h: 268,
     categories: ["0%", "14%", "29%", "43%", "57%", "71%", "86%"],
@@ -1220,9 +1237,9 @@ for (const revealStage of [2]) {
     alt: "Mean pairwise distance between persona trajectories over reasoning progress",
   });
   text(s, "Validated", 902, 226, 230, 28, { size: 21, bold: true, color: C.blue });
-  text(s, "Distance increases in the original 4,096D state space. The MDS pattern is not only a projection artifact.", 902, 266, 270, 104, { size: 20, color: C.body, lineSpacing: 1.14 });
+  text(s, "Distance increases in the original 4,096D state space. The MDS pattern is not only a projection artifact.", 902, 266, 270, 104, { size: 19, color: C.body, lineSpacing: 1.14, autoFit: "none" });
   text(s, "Still missing", 902, 396, 230, 28, { size: 21, bold: true, color: C.coral });
-  text(s, "Distance does not label the paths as outcome-, probability-, value-, or uncertainty-related.", 902, 436, 270, 96, { size: 20, color: C.body, lineSpacing: 1.14 });
+  text(s, "Distance does not label the paths as outcome-, probability-, value-, or uncertainty-related.", 902, 436, 270, 96, { size: 19, color: C.body, lineSpacing: 1.14, autoFit: "none" });
   shape(s, "rect", 84, 548, 1096, 1.5, C.line);
   text(s, "h_t in R^4096", 160, 564, 230, 34, { size: 25, bold: true, color: C.ink, align: "center" });
   arrow(s, 416, 558, 64, 44);
@@ -1272,17 +1289,17 @@ for (const revealStage of [2]) {
   header(s, "Validate the readout before transferring it to reasoning", "Representation / validation", 42, 2, "Choice13K test split grouped by problem ID / mean test R2 = 0.949");
   const featureLabels = ["max gain", "min gain", "max loss", "min loss", "top-2 gains", "P(max gain)", "P(min gain)", "P(max loss)", "P(min loss)", "P(top-2)", "expected value", "entropy"];
   const testR2 = [90.4, 95.2, 88.9, 89.3, 88.0, 99.4, 98.9, 99.4, 99.3, 99.4, 91.6, 99.4];
-  text(s, "test R2 (%)", 260, 202, 620, 24, { size: 14, bold: true, color: C.muted, align: "center" });
+  text(s, "test R2 (%)", 260, 202, 620, 24, { size: TYPE.chartSubtitle, bold: true, color: C.muted, align: "center" });
   testR2.forEach((value, i) => {
     const y = 232 + i * 26;
-    text(s, featureLabels[i], 78, y - 2, 160, 22, { size: 13, color: C.muted, align: "right" });
+    text(s, featureLabels[i], 70, y - 2, 168, 22, { size: TYPE.chartAxis, color: C.muted, align: "right" });
     shape(s, "rect", 260, y, 620, 17, C.faint, null, 0);
     shape(s, "rect", 260, y, 620 * (value / 100), 17, C.blue, null, 0);
-    text(s, value.toFixed(1), 894, y - 3, 58, 22, { size: 12, bold: true, color: C.ink });
+    text(s, value.toFixed(1), 894, y - 3, 64, 22, { size: TYPE.chartValue, bold: true, color: C.ink });
   });
-  text(s, "0.949", 1002, 278, 170, 58, { size: 46, bold: true, color: C.blue, align: "center" });
+  text(s, "0.949", 1002, 278, 170, 58, { size: 44, bold: true, color: C.blue, align: "center", autoFit: "none" });
   text(s, "mean test R2", 1002, 344, 170, 32, { size: 20, color: C.muted, align: "center" });
-  text(s, "11,656 test options\nheld out by problem ID", 986, 430, 202, 78, { size: 21, color: C.body, align: "center", lineSpacing: 1.14 });
+  text(s, "11,656 test options\nheld out by problem ID", 986, 430, 202, 78, { size: 20, color: C.body, align: "center", lineSpacing: 1.14, autoFit: "none" });
   academicPoint(s, "Strong held-out performance validates the mapping task - not its out-of-domain interpretation of reasoning.", 598, 18.5);
   notes(s, "Report performance on the held-out problem split, not the training set. Every target reaches test R2 above 0.879 and the mean is 0.949. This establishes that the readout performs its training task. It does not yet validate applying the map to GPT-4 reasoning states.\n[Sources]\n- artifacts/text2decision/qwen35_layer15_text2decision_multiscale_log/training_report.json.");
 }
@@ -1305,21 +1322,21 @@ for (const revealStage of [2]) {
   for (let c = 0; c < 13; c += 1) {
     const cell = heat.getCell(0, c);
     cell.fill = C.faint;
-    cell.text.style = { fontSize: c === 0 ? 15 : 13, bold: true, color: C.ink, alignment: "center", verticalAlignment: "middle", typeface: FONT };
+    cell.text.style = { fontSize: TYPE.heatmapHeader, bold: true, color: C.ink, alignment: "center", verticalAlignment: "middle", typeface: FONT };
   }
   const heatFill = (v) => v >= 0.10 ? "#B84A45" : v >= 0.05 ? "#D88C84" : v >= 0.02 ? "#F1D5D1" : v <= -0.10 ? "#3E6FA6" : v <= -0.05 ? "#8FAACA" : v <= -0.02 ? "#D6E0EC" : "#F7F5F5";
   personaRows.forEach((row, r) => {
     const labelCell = heat.getCell(r + 1, 0);
     labelCell.fill = C.white;
-    labelCell.text.style = { fontSize: 17, bold: true, color: C.ink, alignment: "left", verticalAlignment: "middle", typeface: FONT };
+    labelCell.text.style = { fontSize: TYPE.heatmapRowLabel, bold: true, color: C.ink, alignment: "left", verticalAlignment: "middle", typeface: FONT };
     row.slice(1).forEach((v, c) => {
       const cell = heat.getCell(r + 1, c + 1);
       cell.fill = heatFill(v);
-      cell.text.style = { fontSize: 14, bold: Math.abs(v) >= 0.05, color: C.ink, alignment: "center", verticalAlignment: "middle", typeface: FONT };
+      cell.text.style = { fontSize: TYPE.heatmapCell, bold: Math.abs(v) >= 0.05, color: C.ink, alignment: "center", verticalAlignment: "middle", typeface: FONT };
     });
   });
-  text(s, "blue = lower than other personas", 250, 548, 310, 26, { size: 17, color: C.blue, align: "center" });
-  text(s, "red = higher than other personas", 710, 548, 310, 26, { size: 17, color: C.coral, align: "center" });
+  text(s, "blue = lower than other personas", 250, 548, 310, 26, { size: TYPE.chartSubtitle, color: C.blue, align: "center" });
+  text(s, "red = higher than other personas", 710, 548, 310, 26, { size: TYPE.chartSubtitle, color: C.coral, align: "center" });
   academicPoint(s, "Risk-seeking shows the clearest gain-oriented signature; other labels are only partly recovered.", 588, 19);
   notes(s, "Each cell is the persona's endpoint change after subtracting the question-by-progress mean, so comparisons are within the same decision problem and stage. Risk-seeking has strong positive changes in maximum gain, minimum gain, and entropy. Outcome-focused and risk-averse partly emphasize loss-related coordinates. Rational and probability-weighted do not cleanly reduce to their labels. Treat this as an exploratory semantic signature rather than a recovered mechanism.\n[Sources]\n- notebooks/results/representation/text2decision_multiscale_log_trajectories/persona_dimension_trends/persona_dimension_endpoint.csv.\n- notebooks/results/representation/text2decision_multiscale_log_trajectories/persona_dimension_trends/persona_dimension_report.json.");
 }
@@ -1340,10 +1357,10 @@ for (const revealStage of [2]) {
     showLegend: true,
     alt: "Held-out choice prediction over reasoning progress from the 12-dimensional state and A-B option axis",
   });
-  text(s, "AUC", 84, 204, 90, 28, { size: 22, bold: true, color: C.blue });
-  text(s, "0.742", 1000, 292, 170, 54, { size: 43, bold: true, color: C.blue });
+  text(s, "AUC", 84, 202, 90, 34, { size: TYPE.chartTitle, bold: true, color: C.blue, autoFit: "none" });
+  text(s, "0.742", 1000, 292, 170, 54, { size: 41, bold: true, color: C.blue, autoFit: "none" });
   text(s, "12D state at the\nend of reasoning", 1000, 358, 180, 62, { size: 20, color: C.body, lineSpacing: 1.14 });
-  text(s, "The scalar A-to-B option axis remains near chance.", 980, 458, 220, 76, { size: 20, bold: true, color: C.ink, lineSpacing: 1.12 });
+  text(s, "The scalar A-to-B option axis remains near chance.", 980, 458, 220, 76, { size: 18, bold: true, color: C.ink, lineSpacing: 1.12, autoFit: "none" });
   academicPoint(s, "The interpretable projection retains cross-question choice signal; unlike the raw-state probe, this tests information preserved after mapping.", 582, 19);
   notes(s, "This is the external test for the interpreted representation. The 12-dimensional state contains cross-question choice information. The simple distance to isolated option anchors is weak, so do not interpret the trajectory as moving directly toward A or B.\n[Sources]\n- notebooks/results/representation/text2decision_multiscale_log_trajectories/choice_prediction_by_progress.csv.\n- notebooks/results/representation/text2decision_multiscale_log_trajectories/analysis_report.json.");
 }
@@ -1401,9 +1418,9 @@ twoColSlide(p, {
   ];
   rows.forEach((row, i) => {
     const y = 216 + i * 104;
-    text(s, row[0], 84, y + 10, 42, 34, { size: 24, bold: true, color: row[3], align: "center" });
-    text(s, row[1], 150, y + 8, 610, 46, { size: 23, color: C.ink });
-    text(s, row[2], 806, y + 8, 350, 46, { size: 20, bold: true, color: row[3], align: "right" });
+    text(s, row[0], 84, y + 8, 42, 46, { size: TYPE.tableBody, autoFit: "none", bold: true, color: row[3], align: "center", valign: "middle" });
+    text(s, row[1], 150, y + 8, 610, 46, { size: TYPE.tableBody, autoFit: "none", color: C.ink, valign: "middle" });
+    text(s, row[2], 806, y + 8, 350, 46, { size: TYPE.tableCompact, autoFit: "none", bold: true, color: row[3], align: "right", valign: "middle" });
     shape(s, "rect", 150, y + 72, 1006, 1, C.line);
   });
   academicPoint(s, "The unit, codebook, and leakage rule must be fixed before scaling annotation.", 548);
@@ -1412,7 +1429,7 @@ twoColSlide(p, {
 
 rowsSlide(p, {
   num: 42,
-  title: "A codebook separates information, operations, and evidential role",
+  title: "A codebook separates information, operations, and roles",
   section: "Explanation / annotation",
   active: 3,
   rows: [
@@ -1428,7 +1445,7 @@ rowsSlide(p, {
 // 43 Construct-validity result
 {
   const s = newSlide(p);
-  header(s, "The codebook detects a controlled reasoning manipulation", "Explanation / validation", 43, 3, "Notebook 3 transparent lexical baseline; five personas; grouped by question");
+  header(s, "The codebook detects the persona manipulation", "Explanation / validation", 43, 3, "Notebook 3 transparent lexical baseline; five personas; grouped by question");
   text(s, "0.519", 116, 238, 360, 86, { size: 58, bold: true, color: C.blue, align: "center" });
   text(s, "held-question persona\nbalanced accuracy", 116, 338, 360, 66, { size: 23, color: C.body, align: "center", lineSpacing: 1.12 });
   text(s, "0.200", 690, 238, 360, 86, { size: 58, bold: true, color: C.muted, align: "center" });
@@ -1441,7 +1458,7 @@ rowsSlide(p, {
 
 twoColSlide(p, {
   num: 44,
-  title: "Continuous states and discrete annotations test each other",
+  title: "Continuous states and annotations test each other",
   section: "Representation → Explanation",
   active: 3,
   leftTitle: "Hidden-state readout",
@@ -1489,10 +1506,10 @@ twoColSlide(p, {
 // 46 Held-question behavior result
 {
   const s = newSlide(p);
-  header(s, "Process annotations predict choice, but simple fusion does not help", "Explanation / evaluation", 46, 3, "Notebook 3 transparent lexical baseline; API annotation not used");
-  text(s, "Input to the readout", 84, 218, 430, 28, { size: 18, bold: true, color: C.muted });
-  text(s, "Balanced accuracy", 674, 218, 220, 28, { size: 18, bold: true, color: C.muted, align: "center" });
-  text(s, "Log loss", 956, 218, 180, 28, { size: 18, bold: true, color: C.muted, align: "center" });
+  header(s, "Annotations predict choice; simple fusion does not help", "Explanation / evaluation", 46, 3, "Notebook 3 transparent lexical baseline; API annotation not used");
+  text(s, "Input to the readout", 84, 218, 430, 28, { size: TYPE.tableHeader, autoFit: "none", bold: true, color: C.muted });
+  text(s, "Balanced accuracy", 674, 218, 220, 28, { size: TYPE.tableHeader, autoFit: "none", bold: true, color: C.muted, align: "center" });
+  text(s, "Log loss", 956, 218, 180, 28, { size: TYPE.tableHeader, autoFit: "none", bold: true, color: C.muted, align: "center" });
   const rows = [
     ["Option features only", "0.529", "0.738", C.muted],
     ["Preference-free annotation profile", "0.619", "0.673", C.blue],
@@ -1500,9 +1517,9 @@ twoColSlide(p, {
   ];
   rows.forEach((row, i) => {
     const y = 276 + i * 86;
-    text(s, row[0], 84, y + 10, 500, 38, { size: 24, bold: i === 1, color: row[3] });
-    text(s, row[1], 674, y + 8, 220, 40, { size: 26, bold: true, color: row[3], align: "center" });
-    text(s, row[2], 956, y + 8, 180, 40, { size: 26, bold: true, color: row[3], align: "center" });
+    text(s, row[0], 84, y + 4, 500, 52, { size: TYPE.tableBody, autoFit: "none", bold: i === 1, color: row[3], valign: "middle" });
+    text(s, row[1], 674, y + 4, 220, 52, { size: 24, bold: true, color: row[3], align: "center", valign: "middle" });
+    text(s, row[2], 956, y + 4, 180, 52, { size: 24, bold: true, color: row[3], align: "center", valign: "middle" });
     shape(s, "rect", 84, y + 66, 1052, 1, C.line);
   });
   academicPoint(s, "The text contains behavioral information; concatenating two channels is not automatically better.", 548);
@@ -1555,9 +1572,9 @@ twoColSlide(p, {
   ];
   rows.forEach((row, i) => {
     const y = 330 + i * 72;
-    text(s, row[0], 84, y, 290, 34, { size: 23, bold: true, color: row[3] });
-    text(s, row[1], 410, y, 260, 34, { size: 22, bold: true, color: C.ink });
-    text(s, row[2], 700, y, 458, 38, { size: 21, color: C.body });
+    text(s, row[0], 84, y, 290, 42, { size: TYPE.tableBody, autoFit: "none", bold: true, color: row[3], valign: "middle" });
+    text(s, row[1], 410, y, 260, 42, { size: TYPE.tableBody, autoFit: "none", bold: true, color: C.ink, valign: "middle" });
+    text(s, row[2], 700, y, 458, 42, { size: TYPE.tableCompact, autoFit: "none", color: C.body, valign: "middle" });
   });
   academicPoint(s, "Choose trials where candidate predictions diverge, then update both behavioral and process evidence.", 548);
   notes(s, "The hybrid is only one candidate. The scientific value comes from choosing a trial on which surviving executable accounts disagree.");
@@ -1627,8 +1644,8 @@ breakSlide(p, "After the break: return to the opening choice with stronger scien
   ];
   qs.forEach((q, i) => {
     const y = 208 + i * 88;
-    text(s, q[0], 84, y + 12, 300, 30, { size: 22, bold: true, color: q[2] });
-    text(s, q[1], 430, y + 12, 720, 36, { size: 21, color: C.body });
+    text(s, q[0], 84, y + 4, 300, 58, { size: TYPE.tableRowLabel, autoFit: "none", bold: true, color: q[2], valign: "middle" });
+    text(s, q[1], 430, y + 4, 720, 58, { size: TYPE.tableBody, autoFit: "none", color: C.body, valign: "middle" });
     shape(s, "rect", 84, y + 78, 1066, 1, C.line);
   });
   academicPoint(s, "The technical ladder comes first; stronger scientific claims require stronger evidence.", 566);
