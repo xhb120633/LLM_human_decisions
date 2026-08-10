@@ -288,3 +288,20 @@ requirements-representation.txt  # 教师级表征复现环境；现在不用安
 ```
 
 如果 `Environment OK` 检查通过，并且能够打开 JupyterLab 或 Google Colab，课前准备就完成了。
+
+## License
+
+除非文件中另有说明，本仓库由作者原创的源代码、notebook、文档、课件源文件和生成的教学材料采用 [Apache License 2.0](LICENSE) 授权：
+
+```text
+Copyright 2026 Hanbo Xie
+SPDX-License-Identifier: Apache-2.0
+```
+
+以下内容不包含在本项目的 Apache 2.0 授权中：
+
+- `notebooks/data/` 中来自或衍生自第三方数据集的文件；
+- `notebooks/results/` 与 `artifacts/` 中受模型、API、数据集或其他上游条款约束的缓存结果；
+- 课件或文档中明确引用的第三方论文、图片、商标及其他材料。
+
+其中 `notebooks/data/c13k_tutorial_sample.csv` 是从 [choices13k](https://github.com/jcpeterson/choices13k) 制作的教学切片。使用或再分发这些材料前，请核对并遵守相应上游条款；本仓库的许可证不会替代或扩大任何第三方授权。使用 Choice13K 开展研究时，也请引用其原始论文。
