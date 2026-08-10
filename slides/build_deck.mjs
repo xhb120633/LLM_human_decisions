@@ -334,24 +334,34 @@ function notebookTransition(p, cfg) {
   text(s, "Georgia Institute of Technology", 84, 578, 520, 30, { size: 21, color: C.muted });
   notes(s, "Introduce one running risky-choice example. The first half builds prediction step by step; the second half asks what improved prediction can support scientifically.");
 }
-// 2 About me
+// 2 Research identity and tutorial relevance
 {
   const s = newSlide(p);
-  header(s, "About me", "INTRODUCTION", 2, undefined);
+  header(s, "My research and why this tutorial", "INTRODUCTION", 2, undefined);
 
   text(s, "Hanbo Xie", 84, 224, 410, 44, { size: 34, bold: true, color: C.ink });
   text(s, "Georgia Institute of Technology", 84, 278, 430, 34, { size: 22, color: C.muted });
   text(
     s,
-    "I study how language models can help us predict, explain, and discover models of human decision-making.",
+    "I study how people and AI think, decide, and learn.",
     84,
-    356,
+    352,
     430,
-    138,
-    { size: 27, color: C.body, lineSpacing: 1.16 },
+    82,
+    { size: 27, bold: true, color: C.body, lineSpacing: 1.14 },
   );
-  text(s, "Prediction  →  Explanation  →  Model discovery", 84, 530, 460, 30, {
-    size: 18,
+  text(s, "Cognitive modeling | behavioral experiments\nThink-aloud data | large language models", 84, 444, 430, 64, {
+    size: 20,
+    color: C.muted,
+    lineSpacing: 1.12,
+  });
+  text(s, "TODAY'S FOCUS", 84, 526, 180, 20, {
+    size: 14,
+    bold: true,
+    color: C.muted,
+  });
+  text(s, "Prediction | Representation | Explanation | Discovery", 84, 550, 460, 28, {
+    size: 16,
     bold: true,
     color: C.blue,
   });
@@ -382,9 +392,10 @@ function notebookTransition(p, cfg) {
   });
 
   notes(s, [
-    "Briefly introduce the research program rather than giving a full biography.",
-    "The four papers motivate the tutorial's progression from prediction to explanation and model discovery.",
+    "Introduce the broader research program: how people and AI think, decide, and learn, studied through cognitive modeling, behavioral experiments, think-aloud data, and language models.",
+    "Then narrow to today's tutorial. The four selected papers motivate the progression from prediction to representation, explanation, and model discovery.",
     "[Sources]",
+    "- https://xhb120633.github.io/#about",
     "- https://openreview.net/forum?id=coJPBEZ9Te",
     "- https://arxiv.org/abs/2605.05091 (conference status: CCN 2026, confirmed by the presenter)",
     "- https://openreview.net/forum?id=1Tny4KgGO2",
