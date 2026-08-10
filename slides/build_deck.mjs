@@ -5,7 +5,7 @@ import { Presentation, PresentationFile } from "@oai/artifact-tool";
 import sharp from "sharp";
 
 const WORK = path.dirname(fileURLToPath(import.meta.url));
-const OUT = path.join(WORK, "llm_risky_decision_tutorial_draft_v42_typography_coherence.pptx");
+const OUT = path.join(WORK, "llm_human_decisions_tutorial.pptx");
 const BUILD_DIR = path.join(WORK, "_build");
 const PREVIEW = path.join(BUILD_DIR, "preview");
 const LAYOUT = path.join(BUILD_DIR, "layout");
@@ -1160,7 +1160,7 @@ for (const revealStage of [2]) {
     text(s, row[1], 354, y, 760, 30, { size: TYPE.tableBody, autoFit: "none", color: C.body, valign: "middle" });
   });
   academicPoint(s, "Success would show linearly accessible choice information - not that the model uses a linear decision rule.", 584, 19);
-  notes(s, "Introduce one evidence gate at a time. The choice probe asks whether the masked choice is linearly decodable from Qwen's final state at each layer. Standardization and logistic regression are fitted inside the training split, and complete questions are held out. A successful probe establishes accessibility, not mechanism or causal use.\n[Sources]\n- scripts/analyze_layerwise_choice_decoding.py.\n- notebooks/results/representation/layerwise_choice_decoding_v2/layerwise_probe_report.json.");
+  notes(s, "Introduce one evidence gate at a time. The choice probe asks whether the masked choice is linearly decodable from Qwen's final state at each layer. Standardization and logistic regression are fitted inside the training split, and complete questions are held out. A successful probe establishes accessibility, not mechanism or causal use.\n[Sources]\n- scripts/analyze_layerwise_choice_decoding.py.\n- notebooks/results/representation/layerwise_choice_decoding/layerwise_probe_report.json.");
 }
 // Representation 4: recoverability and layer selection
 {
@@ -1181,7 +1181,7 @@ for (const revealStage of [2]) {
   text(s, "0.942", 952, 432, 210, 52, { size: 40, bold: true, color: C.blue });
   text(s, "held-out questions", 952, 488, 210, 30, { size: 19, color: C.body });
   academicPoint(s, "Layer 15 provides a behaviorally anchored state; now trace how that information forms across the answer.", 574, 20);
-  notes(s, "This is the first evidence gate. The masked reasoning is informative about choice. Layer 15 is selected because its linear readout generalizes best to held-out questions; it is not a universal decision layer.\n[Sources]\n- notebooks/results/representation/qwen35_choice_recovery/qwen35_bf16_choice_eval_report.json.\n- notebooks/results/representation/layerwise_choice_decoding_v2/layerwise_probe_report.json.");
+  notes(s, "This is the first evidence gate. The masked reasoning is informative about choice. Layer 15 is selected because its linear readout generalizes best to held-out questions; it is not a universal decision layer.\n[Sources]\n- notebooks/results/representation/qwen35_choice_recovery/qwen35_bf16_choice_eval_report.json.\n- notebooks/results/representation/layerwise_choice_decoding/layerwise_probe_report.json.");
 }
 
 // Representation 5: cumulative trajectory

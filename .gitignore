@@ -16,8 +16,8 @@ slides/node_modules/
 slides/_build/
 slides/archive/
 slides/*.inspect.ndjson
-slides/llm_risky_decision_tutorial_draft_v*.pptx
-!slides/llm_risky_decision_tutorial_draft_v39_integrated_explanation.pptx
+slides/*.pptx
+!slides/llm_human_decisions_tutorial.pptx
 notebooks/archive/
 notebooks/cache/
 notebooks/results/

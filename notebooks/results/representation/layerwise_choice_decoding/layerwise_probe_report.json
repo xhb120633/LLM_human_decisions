@@ -1,13 +1,14 @@
 {
   "model": "Qwen/Qwen3.5-9B",
   "representation": "final sentence-end hidden state",
-  "question_identity": "exact question text",
   "trials": 1368,
   "participants": 72,
-  "questions": 19,
+  "problems": 19,
+  "layers": 33,
   "folds": 5,
   "seed": 2026,
   "logistic_regression_c": 0.01,
+  "selection_metric": "mean cross-validated balanced accuracy",
   "native_model_metrics": {
     "accuracy": 0.9451754385964912,
     "balanced_accuracy": 0.9335106382978724,
@@ -18,17 +19,17 @@
   "best_layers": {
     "participant": {
       "layer": 18,
-      "balanced_accuracy_mean": 0.9652739753864775,
-      "balanced_accuracy_std": 0.008049233394654992,
-      "log_loss_mean": 0.12276386948760895,
-      "brier_mean": 0.02977226259620717
+      "balanced_accuracy_mean": 0.9648600469228009,
+      "balanced_accuracy_std": 0.003681587950015258,
+      "log_loss_mean": 0.11996034420308352,
+      "brier_mean": 0.028629591297116196
     },
-    "question": {
+    "problem": {
       "layer": 15,
-      "balanced_accuracy_mean": 0.9421368075174106,
-      "balanced_accuracy_std": 0.03744898278729686,
-      "log_loss_mean": 0.15597022464148663,
-      "brier_mean": 0.044848432755857356
+      "balanced_accuracy_mean": 0.9682579374987519,
+      "balanced_accuracy_std": 0.007658509684613673,
+      "log_loss_mean": 0.1097487790719025,
+      "brier_mean": 0.027808912269225293
     }
   }
 }

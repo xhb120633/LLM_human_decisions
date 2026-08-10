@@ -9,11 +9,11 @@
 
 课程面向心理学、神经科学、行为经济学和管理学等背景的研究者。**不要求机器学习经验，也不要求独立显卡。**
 
-## 当前可审阅材料
+## 课程材料
 
-本轮课程草稿已经按照“科学问题 → 技术实现 → 证据边界”的主线整合：
+当前公开材料均为最新版，并按照“科学问题 → 技术实现 → 证据边界”的主线整合：
 
-- [73 页 PPT 草稿](slides/llm_risky_decision_tutorial_draft_v39_integrated_explanation.pptx)
+- [课程 PPT](slides/llm_human_decisions_tutorial.pptx)
 - [Notebook 使用顺序与数据说明](notebooks/README.md)
 - [Notebook 1：从单次预测到个体历史学习曲线](notebooks/01_prediction_from_zero_shot_to_icl.ipynb)
 - [Notebook 2：从隐藏状态到推理轨迹](notebooks/02_representation_from_hidden_states_to_reasoning_trajectories.ipynb)
