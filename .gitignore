@@ -25,3 +25,5 @@ notebooks/*.qa.ipynb
 scripts/*
 !scripts/build_notebooks.py
 !scripts/build_explanation_notebook.py
+!scripts/run_prefix_history_sft.py
+!scripts/evaluate_prefix_history_controls.py

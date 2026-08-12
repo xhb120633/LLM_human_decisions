@@ -1456,15 +1456,31 @@ rowsSlide(p, {
 // 43 Construct-validity result
 {
   const s = newSlide(p);
-  header(s, "The codebook detects the persona manipulation", "Explanation / validation", 43, 3, "Notebook 3 transparent lexical baseline; five personas; grouped by question");
-  text(s, "0.519", 116, 238, 360, 86, { size: 58, bold: true, color: C.blue, align: "center" });
-  text(s, "held-question persona\nbalanced accuracy", 116, 338, 360, 66, { size: 23, color: C.body, align: "center", lineSpacing: 1.12 });
-  text(s, "0.200", 690, 238, 360, 86, { size: 58, bold: true, color: C.muted, align: "center" });
-  text(s, "five-class\nchance reference", 690, 338, 360, 66, { size: 23, color: C.body, align: "center", lineSpacing: 1.12 });
-  shape(s, "rect", 552, 238, 1.5, 180, C.line);
-  text(s, "Controls: explicit preference claims removed · folds hold out entire questions", 174, 468, 932, 36, { size: 20, color: C.muted, align: "center" });
-  academicPoint(s, "This supports sensitivity to the synthetic persona manipulation—not validity for human mechanisms.", 548);
-  notes(s, "The transparent lexical codebook recovers persona information above chance across held-out questions. The persona prompt is known only because this is synthetic validation data.");
+  header(s, "Can preference-free annotations identify the synthetic persona?", "Explanation / validation", 43, 3, "Notebook 3 · 1,368 trials · 5 personas · 19 question groups · grouped cross-validation");
+
+  text(s, "1  INPUT + LEAKAGE CONTROL", 84, 205, 326, 28, { size: 16, bold: true, color: C.blue });
+  text(s, "1,368 synthetic reasoning trials\n5 prompted personas; 19 questions\nKeep only text before the first explicit\nA/B preference claim.", 84, 244, 326, 132, { size: 18, color: C.body, lineSpacing: 1.18 });
+
+  text(s, "2  BUILD ONE 7D PROFILE PER TRIAL", 458, 205, 340, 28, { size: 16, bold: true, color: C.blue });
+  text(s, "Mark whether each retained sentence\nmentions:\nEV, probability, weighting, downside,\nupside, certainty, or risk.\nAverage the 7 indicators across sentences.", 458, 244, 340, 142, { size: 18, color: C.body, lineSpacing: 1.14 });
+
+  text(s, "3  PREDICT PERSONA ON NEW QUESTIONS", 846, 205, 350, 28, { size: 16, bold: true, color: C.blue });
+  text(s, "Standardize features + logistic regression\n5-fold cross-validation grouped by question\nAll versions of a question remain in one\nfold.", 846, 244, 350, 132, { size: 18, color: C.body, lineSpacing: 1.18 });
+
+  shape(s, "rect", 432, 205, 1.25, 177, C.line);
+  shape(s, "rect", 820, 205, 1.25, 177, C.line);
+  shape(s, "rect", 84, 416, 1112, 1.25, C.line);
+
+  text(s, "Balanced accuracy = mean recall across the five persona classes", 84, 456, 676, 30, { size: 19, color: C.body });
+  text(s, "Target: prompted persona - not behavioral choice", 84, 494, 676, 30, { size: 19, bold: true, color: C.body });
+  text(s, "0.519", 842, 449, 142, 62, { size: 48, bold: true, color: C.blue, align: "center" });
+  text(s, "cross-validated", 806, 511, 214, 32, { size: 17, color: C.body, align: "center" });
+  shape(s, "rect", 1028, 456, 1.5, 78, C.line);
+  text(s, "0.200", 1050, 449, 142, 62, { size: 48, bold: true, color: C.muted, align: "center" });
+  text(s, "chance = 1 / 5", 1014, 511, 214, 32, { size: 17, color: C.body, align: "center" });
+
+  academicPoint(s, "The annotation profile carries persona information across held-out questions; this is not choice accuracy or evidence of a human mechanism.", 548);
+  notes(s, "Method: remove explicit A/B preference claims, average seven transparent lexical annotation indicators within each trial, and predict the five prompted personas with standardized logistic regression. Evaluation uses five-fold grouped cross-validation with question_id as the group. Balanced accuracy is the macro-average recall across persona classes. The 0.519 score is persona classification, not choice prediction.");
 }
 
 twoColSlide(p, {
