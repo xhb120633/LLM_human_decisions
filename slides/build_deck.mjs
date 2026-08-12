@@ -418,10 +418,67 @@ function notebookTransition(p, cfg) {
   notes(s, "Run a quick vote. Keep the choice visible as the running example.");
 }
 
-// 3 What counts as understanding?
+// 4 Tutorial scope
 {
   const s = newSlide(p);
-  header(s, "What would count as understanding a human decision?", "Core question", 3, undefined);
+  header(s, "We focus on language models as tools for decision research", "Tutorial scope", 4, undefined);
+
+  text(s, "WHAT WE WILL STUDY", 84, 208, 430, 24, {
+    size: 15,
+    bold: true,
+    color: C.blue,
+  });
+  text(s, "How language models can help us understand human decision behavior", 84, 252, 490, 86, {
+    size: 29,
+    bold: true,
+    color: C.ink,
+    lineSpacing: 1.08,
+  });
+  bullets(s, [
+    "What can be predicted from choices, histories, and reports?",
+    "What representations and explanations can be inferred?",
+    "What evidence supports stronger scientific claims?",
+  ], 84, 374, 500, 154, { size: 21, lineSpacing: 1.2, color: C.body });
+
+  shape(s, "rect", 628, 204, 1.25, 330, C.line);
+  text(s, "WHAT WE WILL NOT COVER", 684, 208, 450, 24, {
+    size: 15,
+    bold: true,
+    color: C.muted,
+  });
+  text(s, "Model engineering internals", 684, 254, 450, 30, {
+    size: 24,
+    bold: true,
+    color: C.ink,
+  });
+  text(s, "Transformer architecture, training systems, and implementation details", 684, 294, 456, 58, {
+    size: 20,
+    color: C.body,
+    lineSpacing: 1.14,
+  });
+  text(s, "Broad philosophical debates", 684, 394, 450, 30, {
+    size: 24,
+    bold: true,
+    color: C.ink,
+  });
+  text(s, "Consciousness, world models, or whether language models will replace human scientists", 684, 434, 456, 78, {
+    size: 20,
+    color: C.body,
+    lineSpacing: 1.14,
+  });
+
+  academicPoint(s, "With the scope fixed, we still need a testable standard for what counts as understanding.", 584, 20);
+  notes(s, [
+    "Use this slide to set the level of analysis before introducing the understanding ladder.",
+    "The foundations section gives only the minimal functional data flow needed for later prediction and representation analyses; it does not teach Transformer implementation.",
+    "The tutorial also brackets broader debates about consciousness, world models, and replacement of scientists.",
+  ]);
+}
+
+// 5 What counts as understanding?
+{
+  const s = newSlide(p);
+  header(s, "What would count as understanding a human decision?", "Core question", 5, undefined);
 
   text(s, "Claim", 84, 202, 180, 28, { size: TYPE.tableHeader, autoFit: "none", bold: true, color: C.muted });
   text(s, "Question", 310, 202, 330, 28, { size: TYPE.tableHeader, autoFit: "none", bold: true, color: C.muted });
