@@ -418,58 +418,82 @@ function notebookTransition(p, cfg) {
   notes(s, "Run a quick vote. Keep the choice visible as the running example.");
 }
 
-// 4 Tutorial scope
-{
+// 4 Tutorial scope: two consecutive builds act as a device-stable reveal.
+for (let revealStage = 1; revealStage <= 2; revealStage++) {
   const s = newSlide(p);
-  header(s, "We focus on language models as tools for decision research", "Tutorial scope", 4, undefined);
+  header(s, "Scope of this tutorial", "Tutorial scope", 4, undefined);
 
-  text(s, "WHAT WE WILL STUDY", 84, 208, 430, 24, {
-    size: 15,
-    bold: true,
-    color: C.blue,
-  });
-  text(s, "How language models can help us understand human decision behavior", 84, 252, 490, 86, {
-    size: 29,
-    bold: true,
-    color: C.ink,
-    lineSpacing: 1.08,
-  });
-  bullets(s, [
-    "What can be predicted from choices, histories, and reports?",
-    "What representations and explanations can be inferred?",
-    "What evidence supports stronger scientific claims?",
-  ], 84, 374, 500, 154, { size: 21, lineSpacing: 1.2, color: C.body });
-
-  shape(s, "rect", 628, 204, 1.25, 330, C.line);
-  text(s, "WHAT WE WILL NOT COVER", 684, 208, 450, 24, {
-    size: 15,
+  text(s, "SCOPE", 84, 208, 180, 26, {
+    size: TYPE.tableHeader,
+    autoFit: "none",
     bold: true,
     color: C.muted,
   });
-  text(s, "Model engineering internals", 684, 254, 450, 30, {
-    size: 24,
+  text(s, "LEVEL OF ANALYSIS", 286, 208, 292, 26, {
+    size: TYPE.tableHeader,
+    autoFit: "none",
     bold: true,
-    color: C.ink,
+    color: C.muted,
   });
-  text(s, "Transformer architecture, training systems, and implementation details", 684, 294, 456, 58, {
-    size: 20,
-    color: C.body,
-    lineSpacing: 1.14,
-  });
-  text(s, "Broad philosophical debates", 684, 394, 450, 30, {
-    size: 24,
+  text(s, "WHAT THAT MEANS HERE", 612, 208, 548, 26, {
+    size: TYPE.tableHeader,
+    autoFit: "none",
     bold: true,
-    color: C.ink,
+    color: C.muted,
   });
-  text(s, "Consciousness, world models, or whether language models will replace human scientists", 684, 434, 456, 78, {
-    size: 20,
-    color: C.body,
-    lineSpacing: 1.14,
+  shape(s, "rect", 84, 244, 1076, 1.25, C.line);
+
+  const rows = [
+    ["Not covered", "Model implementation", "Transformer architecture, training systems, and engineering details", C.muted],
+    ["Not covered", "Broad philosophy", "Consciousness, world models, or whether language models will replace scientists", C.muted],
+  ];
+  if (revealStage >= 2) {
+    rows.push([
+      "Our focus",
+      "Scientific use",
+      "How language models help us describe, predict, represent, explain, and model human decisions",
+      C.blue,
+    ]);
+  }
+
+  rows.forEach((row, i) => {
+    const y = 266 + i * 104;
+    text(s, row[0], 84, y, 180, 64, {
+      size: TYPE.tableBody,
+      autoFit: "none",
+      bold: true,
+      color: row[3],
+      valign: "middle",
+    });
+    text(s, row[1], 286, y, 292, 64, {
+      size: TYPE.tableBody,
+      autoFit: "none",
+      bold: true,
+      color: C.ink,
+      valign: "middle",
+    });
+    text(s, row[2], 612, y, 548, 64, {
+      size: TYPE.tableCompact,
+      autoFit: "none",
+      color: C.body,
+      lineSpacing: 1.1,
+      valign: "middle",
+    });
+    shape(s, "rect", 84, y + 82, 1076, 1, C.line);
   });
 
-  academicPoint(s, "With the scope fixed, we still need a testable standard for what counts as understanding.", 584, 20);
+  academicPoint(
+    s,
+    revealStage === 1
+      ? "First bracket adjacent engineering and philosophical questions."
+      : "Next, define testable levels of what it means to understand a human decision.",
+    584,
+    20,
+  );
   notes(s, [
-    "Use this slide to set the level of analysis before introducing the understanding ladder.",
+    revealStage === 1
+      ? "First reveal only the two neighboring topics that the tutorial brackets."
+      : "Advance to reveal the scientific target, then move directly to the understanding ladder.",
     "The foundations section gives only the minimal functional data flow needed for later prediction and representation analyses; it does not teach Transformer implementation.",
     "The tutorial also brackets broader debates about consciousness, world models, and replacement of scientists.",
   ]);
