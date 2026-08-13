@@ -97,7 +97,14 @@ function xmlEscape(value) {
 async function addStaticLineChart(slide, cfg) {
   const { x, y, w, h, categories, series, yMin, yMax, yStep, showLegend = false, labelSeries = [] } = cfg;
   const yFormat = cfg.yFormat ?? ((v) => v.toFixed(1));
-  const margin = { left: 58, right: 18, top: 16, bottom: showLegend ? 66 : 42 };
+  const hasXAxisTitle = Boolean(cfg.xAxisTitle);
+  const hasYAxisTitle = Boolean(cfg.yAxisTitle);
+  const margin = {
+    left: hasYAxisTitle ? 84 : 58,
+    right: 18,
+    top: 16,
+    bottom: showLegend ? (hasXAxisTitle ? 94 : 66) : (hasXAxisTitle ? 64 : 42),
+  };
   const plotW = w - margin.left - margin.right;
   const plotH = h - margin.top - margin.bottom;
   const sx = (i) => margin.left + (categories.length === 1 ? plotW / 2 : (i / (categories.length - 1)) * plotW);
@@ -142,12 +149,18 @@ async function addStaticLineChart(slide, cfg) {
     return `<line x1="${xx}" y1="${yy - 5}" x2="${xx + 26}" y2="${yy - 5}" stroke="${entry.color}" stroke-width="3"/>` +
       `<text x="${xx + 34}" y="${yy}" font-family="Arial" font-size="${TYPE.chartLegend}" fill="${C.body}">${xmlEscape(entry.name)}</text>`;
   }).join("") : "";
+  const xAxisTitle = hasXAxisTitle
+    ? `<text x="${margin.left + plotW / 2}" y="${margin.top + plotH + 52}" text-anchor="middle" font-family="Arial" font-size="${TYPE.chartSubtitle}" fill="${C.body}">${xmlEscape(cfg.xAxisTitle)}</text>`
+    : "";
+  const yAxisTitle = hasYAxisTitle
+    ? `<text x="18" y="${margin.top + plotH / 2}" text-anchor="middle" font-family="Arial" font-size="${TYPE.chartSubtitle}" fill="${C.body}" transform="rotate(-90 18 ${margin.top + plotH / 2})">${xmlEscape(cfg.yAxisTitle)}</text>`
+    : "";
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w * 2}" height="${h * 2}" viewBox="0 0 ${w} ${h}">
     <rect width="${w}" height="${h}" fill="${C.white}"/>
     ${bands}${grid}
     <line x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${margin.top + plotH}" stroke="${C.ink}" stroke-width="1.2"/>
     <line x1="${margin.left}" y1="${margin.top + plotH}" x2="${margin.left + plotW}" y2="${margin.top + plotH}" stroke="${C.ink}" stroke-width="1.2"/>
-    ${xTicks}${chartLines}${legend}
+    ${xTicks}${chartLines}${xAxisTitle}${yAxisTitle}${legend}
   </svg>`;
   const png = await sharp(Buffer.from(svg)).png().toBuffer();
   slide.images.add({
@@ -1209,62 +1222,81 @@ notebookTransition(p, {
   notes(s, "All forty future trials are retained, giving 19 A and 21 B targets. Each participant's first eight history trials contain six A and two B choices. The balanced condition resamples eight earlier trials as four A and four B. Option order is counterbalanced in scoring.\n[Sources]\n- notebooks/results/clean_icl_balance_demo/summary.csv\n[/Sources]");
 }
 
-// Clean ICL result
+const iclLabels = ["0", "2", "4", "6", "8", "10", "12"];
+const iclReference = iclLabels.map(() => Math.log(2));
+const iclParticipants = [
+  {
+    name: "P025", color: C.blue,
+    natural: [0.692, 0.703, 0.666, 0.714, 0.669, 0.742, 0.713],
+    balanced: [0.692, 0.683, 0.604, 0.555, 0.591, 0.698, 0.718],
+  },
+  {
+    name: "P026", color: C.orange,
+    natural: [0.657, 0.730, 0.654, 0.672, 0.761, 0.772, 0.751],
+    balanced: [0.657, 0.787, 0.708, 0.805, 0.707, 0.765, 0.630],
+  },
+];
+
+// Clean ICL result: natural history
 {
   const s = newSlide(p);
-  header(s, "Balance reveals participant-specific learning curves", "Prediction / matched history curves", 24, 1,
-    "Same 20 future targets per participant / identical k=0 predictions");
+  header(s, "Natural history can make in-context learning worse", "Prediction / in-context learning curve", 24, 1,
+    "Same 20 future targets per participant / natural order of earlier trials");
 
-  const labels = ["0", "2", "4", "6", "8", "10", "12"];
-  const reference = labels.map(() => Math.log(2));
-  const participants = [
-    {
-      name: "P025", color: C.blue,
-      natural: [0.692, 0.703, 0.666, 0.714, 0.669, 0.742, 0.713],
-      balanced: [0.692, 0.683, 0.604, 0.555, 0.591, 0.698, 0.718],
-    },
-    {
-      name: "P026", color: C.orange,
-      natural: [0.657, 0.730, 0.654, 0.672, 0.761, 0.772, 0.751],
-      balanced: [0.657, 0.787, 0.708, 0.805, 0.707, 0.765, 0.630],
-    },
-  ];
-
-  text(s, "Natural history order", 72, 202, 510, 30, { size: TYPE.chartTitle, bold: true, color: C.blue });
-  text(s, "Labels become increasingly A-heavy", 72, 234, 510, 22, { size: TYPE.chartSubtitle, color: C.muted });
-  text(s, "A/B-balanced history", 690, 202, 510, 30, { size: TYPE.chartTitle, bold: true, color: C.teal });
-  text(s, "Equal A and B demonstrations at every k", 690, 234, 510, 22, { size: TYPE.chartSubtitle, color: C.muted });
-
-  for (const [x, key] of [[72, "natural"], [690, "balanced"]]) {
-    await addStaticLineChart(s, {
-      x, y: 258, w: 520, h: 288,
-      categories: labels,
-      series: [
-        ...participants.map((entry) => ({
-          name: entry.name,
-          values: entry[key],
-          color: entry.color,
-          width: 2.75,
-          markerSize: 4,
-        })),
-        { name: "Random", values: reference, color: C.mutedLight, width: 1.5, markers: false, dash: "6 5" },
-      ],
-      yMin: 0.5, yMax: 0.85, yStep: 0.1,
-      xLabelIndices: [0, 1, 2, 3, 4, 5, 6],
-      alt: `${key} participant-level log-loss curves over matched targets`,
-    });
-  }
-
-  text(s, "Earlier trials in context (k)", 206, 550, 250, 22, { size: TYPE.chartSubtitle, color: C.body, align: "center" });
-  text(s, "Earlier trials in context (k)", 824, 550, 250, 22, { size: TYPE.chartSubtitle, color: C.body, align: "center" });
-  participants.forEach((entry, i) => {
-    const x = 908 + i * 116;
-    shape(s, "rect", x, 210, 28, 3, entry.color);
-    text(s, entry.name, x + 36, 200, 68, 22, { size: TYPE.chartLegend, bold: true, color: entry.color });
+  await addStaticLineChart(s, {
+    x: 126, y: 202, w: 1028, h: 382,
+    categories: iclLabels,
+    series: [
+      ...iclParticipants.map((entry) => ({
+        name: entry.name,
+        values: entry.natural,
+        color: entry.color,
+        width: 3.5,
+        markerSize: 5,
+      })),
+      { name: "Random forecast", values: iclReference, color: C.mutedLight, width: 2, markers: false, dash: "7 6" },
+    ],
+    yMin: 0.5, yMax: 0.85, yStep: 0.1,
+    xLabelIndices: [0, 1, 2, 3, 4, 5, 6],
+    xAxisTitle: "Earlier trials from the same participant in context (k)",
+    yAxisTitle: "Mean log loss on held-out choices",
+    showLegend: true,
+    alt: "Natural-order participant-level in-context learning curves with random-forecast reference",
   });
 
-  academicPoint(s, "Balance removes the label confound; the remaining gain is participant-specific and non-monotonic.", 588, 20);
-  notes(s, "Both panels evaluate the same forty future choices: twenty from P025 and twenty from P026. Each participant has one shared zero-history point. Natural histories use the first k earlier trials. Balanced histories contain k/2 A and k/2 B choices. P025 improves most at k=6 under balanced history; P026 is noisier and improves at k=12. The curves support a teaching claim about experimental control, not a stable population estimate.\n[Sources]\n- notebooks/results/clean_icl_balance_demo/curve_by_participant.csv\n[/Sources]");
+  academicPoint(s, "As k grows, the natural histories become A-heavy; neither participant shows a stable improvement.", 596, 20);
+  notes(s, "Both curves evaluate the same twenty future choices for each participant. The x-axis changes only the number of earlier same-participant trials placed in context. The y-axis is mean log loss, so lower is better. The dashed reference is the random binary forecast, ln(2) = 0.693. Natural histories use the first k earlier trials and become increasingly A-heavy.\n[Sources]\n- notebooks/results/clean_icl_balance_demo/curve_by_participant.csv\n[/Sources]");
+}
+
+// Clean ICL result: balanced history
+{
+  const s = newSlide(p);
+  header(s, "Balanced histories remain participant-specific", "Prediction / in-context learning curve", 24, 1,
+    "Same targets and k values / equal A and B demonstrations at every non-zero k");
+
+  await addStaticLineChart(s, {
+    x: 126, y: 202, w: 1028, h: 382,
+    categories: iclLabels,
+    series: [
+      ...iclParticipants.map((entry) => ({
+        name: entry.name,
+        values: entry.balanced,
+        color: entry.color,
+        width: 3.5,
+        markerSize: 5,
+      })),
+      { name: "Random forecast", values: iclReference, color: C.mutedLight, width: 2, markers: false, dash: "7 6" },
+    ],
+    yMin: 0.5, yMax: 0.85, yStep: 0.1,
+    xLabelIndices: [0, 1, 2, 3, 4, 5, 6],
+    xAxisTitle: "Earlier trials from the same participant in context (k)",
+    yAxisTitle: "Mean log loss on held-out choices",
+    showLegend: true,
+    alt: "Balanced-history participant-level in-context learning curves with random-forecast reference",
+  });
+
+  academicPoint(s, "Balancing removes the label confound, but the useful history length differs across participants.", 596, 20);
+  notes(s, "This slide keeps the model, targets, and k values matched to the previous slide but balances the history labels. P025 improves most at k=6; P026 is noisier and improves at k=12. The y-axis is mean log loss, so lower is better. The dashed reference is the random binary forecast, ln(2) = 0.693. The curves support a teaching claim about experimental control, not a stable population estimate.\n[Sources]\n- notebooks/results/clean_icl_balance_demo/curve_by_participant.csv\n[/Sources]");
 }
 
 // Clean ICL summary
