@@ -1200,7 +1200,7 @@ rowsSlide(p, {
   academicPoint(s, "Prediction creates candidates; diagnostic manipulations separate them.", 568);
   notes(s, "This is the bridge from prediction to representation and mechanism. Every candidate driver implies a different manipulation.");
 }
-breakSlide(p, "Next: what information supported the improved prediction?", 1);
+breakSlide(p, "Prediction complete. Next: what information supported the prediction?", 1);
 
 sectionSlide(p, 3, "What information supports a decision?", "Four questions guide the chapter: Is information present? How does it evolve? What does it mean? Does it predict behavior?", 2);
 
@@ -1720,7 +1720,7 @@ twoColSlide(p, {
 
 breakSlide(
   p,
-  "After the break: search for executable models and design tests that distinguish them.",
+  "Explanation complete. Next: search for executable models and design tests that distinguish them.",
   3,
 );
 
