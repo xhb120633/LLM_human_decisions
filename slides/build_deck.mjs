@@ -1711,6 +1711,14 @@ twoColSlide(p, {
   notes(s, "All three readouts hold out entire questions. Explicit preference claims were removed before annotation. This is predictive evidence, not causal recovery.");
 }
 
+sectionSlide(
+  p,
+  5,
+  "Search for executable models",
+  "Generate candidate processes, fit them to behavior, and design diagnostic trials that separate the surviving accounts.",
+  4,
+);
+
 {
   const s = newSlide(p);
   header(s, "Model discovery is a separate search problem", "Model discovery / boundary", 47, 4, "Annotation is one optional input");
