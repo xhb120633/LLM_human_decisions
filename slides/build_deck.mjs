@@ -1550,7 +1550,7 @@ for (const revealStage of [2]) {
   await addStaticLineChart(s, {
     x: 82, y: 252, w: 820, h: 286,
     categories: ["0", "4", "8", "12", "15", "18", "24", "32"],
-    series: [{ name: "Linear readout", values: [0.498, 0.794, 0.834, 0.874, 0.942, 0.932, 0.902, 0.894], color: C.blue, width: 3, markerSize: 4 }],
+    series: [{ name: "Linear readout", values: [0.499, 0.808, 0.881, 0.923, 0.968, 0.964, 0.929, 0.933], color: C.blue, width: 3, markerSize: 4 }],
     yMin: 0.45, yMax: 1.0, yStep: 0.1,
     alt: "Balanced choice-decoding accuracy by Qwen model layer",
   });
@@ -1558,7 +1558,7 @@ for (const revealStage of [2]) {
   text(s, "0.934", 952, 278, 210, 52, { size: 40, bold: true, color: C.ink });
   text(s, "balanced accuracy", 952, 334, 210, 30, { size: 19, color: C.body });
   text(s, "Layer 15 readout", 952, 398, 210, 28, { size: 19, bold: true, color: C.blue });
-  text(s, "0.942", 952, 432, 210, 52, { size: 40, bold: true, color: C.blue });
+  text(s, "0.968", 952, 432, 210, 52, { size: 40, bold: true, color: C.blue });
   text(s, "held-out questions", 952, 488, 210, 30, { size: 19, color: C.body });
   academicPoint(s, "Layer 15 provides a behaviorally anchored state; now trace how that information forms across the answer.", 574, 20);
   notes(s, "This is the first evidence gate. The masked reasoning is informative about choice. Layer 15 is selected because its linear readout generalizes best to held-out questions; it is not a universal decision layer.\n[Sources]\n- notebooks/results/representation/qwen35_choice_recovery/qwen35_bf16_choice_eval_report.json.\n- notebooks/results/representation/layerwise_choice_decoding/layerwise_probe_report.json.");
