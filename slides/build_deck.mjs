@@ -578,8 +578,24 @@ for (let revealStage = 1; revealStage <= 2; revealStage++) {
     const x = stageXs[i];
     shape(s, "roundRect", x, 224, 150, 112, C.white, C.line, 1.25, "rounded-lg");
     shape(s, "rect", x, 224, 150, 5, st[2]);
-    text(s, st[0], x + 12, 246, 126, 30, { size: 18, bold: true, color: C.ink, align: "center" });
-    text(s, st[1], x + 10, 286, 130, 34, { size: 14.5, color: C.body, align: "center", typeface: i === 0 || i === 2 ? MONO : FONT, lineSpacing: 1.08 });
+    text(s, st[0], x + 12, 242, 126, 42, {
+      size: 17,
+      autoFit: "none",
+      bold: true,
+      color: C.ink,
+      align: "center",
+      valign: "middle",
+      lineSpacing: 1.02,
+    });
+    text(s, st[1], x + 10, 288, 130, 32, {
+      size: 14.5,
+      autoFit: "none",
+      color: C.body,
+      align: "center",
+      valign: "middle",
+      typeface: i === 0 || i === 2 ? MONO : FONT,
+      lineSpacing: 1.05,
+    });
   });
   if (revealStage >= 2) {
     const loopXs = [270, 500, 730, 960];
