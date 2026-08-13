@@ -981,6 +981,7 @@ rowsSlide(p, {
   takeaway: "Participant leakage can make personalization look stronger than it is."
 });
 
+if (false) {
 notebookTransition(p, {
   kicker: "HANDS-ON / NOTEBOOK 1B",
   title: "Turn one prediction into a learning curve",
@@ -1138,6 +1139,102 @@ notebookTransition(p, {
   academicPoint(s, "Balanced history induces an A shift: P025 misses all four B targets; P026 retains only its single A target.", 592, 20);
   notes(s, "P025 has four B targets; P026 has three B targets and one A target. After balanced history is added, the model predicts A strongly for both people. The participant plots use the same fixed targets and average three balanced history selections at each non-zero k.\n[Sources]\n- notebooks/results/fixed_eval_balanced_history/fixed_eval_balanced_by_participant.csv\n[/Sources]");
 }
+
+// Same-target rescue test: retrieval, model capacity, and calibration
+{
+  const s = newSlide(p);
+  header(s, "Matched history helps only when the model can use it", "Prediction / controlled rescue test", 26, 1,
+    "Same 8 held-out choices in every row");
+
+  text(s, "Condition", 84, 206, 610, 26, { size: TYPE.tableHeader, bold: true, color: C.muted });
+  text(s, "Accuracy", 770, 206, 150, 26, { size: TYPE.tableHeader, bold: true, color: C.muted, align: "center" });
+  text(s, "Log loss", 980, 206, 150, 26, { size: TYPE.tableHeader, bold: true, color: C.muted, align: "center" });
+  const rows = [
+    ["V4 Flash / current trial only", "0.875", "0.594", C.blue],
+    ["V4 Flash / random balanced history (4)", "0.125", "3.203", C.orange],
+    ["V4 Pro / nearest balanced history (4)", "0.875", "0.530", C.teal],
+    ["V4 Pro / plus label-swap calibration", "0.750", "0.502", C.purple],
+  ];
+  rows.forEach((row, i) => {
+    const y = 254 + i * 70;
+    text(s, row[0], 84, y, 610, 40, { size: TYPE.tableBody, bold: i >= 2, color: row[3], valign: "middle" });
+    text(s, row[1], 770, y, 150, 40, { size: 23, bold: true, color: row[3], align: "center", valign: "middle" });
+    text(s, row[2], 980, y, 150, 40, { size: 23, bold: true, color: row[3], align: "center", valign: "middle" });
+    shape(s, "rect", 84, y + 52, 1046, 1, C.line);
+  });
+  academicPoint(s, "Retrieval alone is insufficient; with the stronger model, matched history preserves accuracy and improves probability quality.", 570, 20);
+  notes(s, [
+    "The evaluation participants, target trials, labels, and scoring are identical across rows.",
+    "V4 Pro with nearest balanced history matches zero-shot accuracy and reduces log loss from 0.594 to 0.530.",
+    "Label-swap calibration reduces log loss further but changes one hard decision, so accuracy falls to 0.750.",
+    "N=8 is a teaching diagnostic, not a population estimate or a model leaderboard.",
+    "[Sources]",
+    "- notebooks/results/fixed_eval_balanced_history/fixed_eval_balanced_summary.csv",
+    "- notebooks/results/retrieval_calibrated_icl_v4_pro/summary.csv",
+    "[/Sources]",
+  ]);
+}
+}
+
+notebookTransition(p, {
+  kicker: "HANDS-ON / NOTEBOOK 1B",
+  title: "Try participant history, then check label balance",
+  start: "Section 6: An unbalanced history can bias the probability estimate",
+  steps: ["Keep all 40 future choices", "Compare 6A/2B with 4A/4B history", "Score the same model with log loss"],
+  stop: "After: balancing repairs the probability shift",
+  returnTo: "Unbalanced history can bias the model toward one label"
+});
+
+// Clean ICL setup
+{
+  const s = newSlide(p);
+  header(s, "Unbalanced history can bias the model toward one label", "Prediction / in-context learning", 23, 1,
+    "DeepSeek V4 Pro / P025 and P026 / trials 21-40");
+
+  text(s, "Held-out targets", 84, 210, 280, 28, { size: 22, bold: true, color: C.blue });
+  text(s, "40 future choices", 84, 252, 280, 38, { size: 29, bold: true, color: C.ink });
+  text(s, "19 A  /  21 B", 84, 304, 280, 30, { size: 23, color: C.body });
+
+  shape(s, "rect", 408, 198, 1.25, 294, C.line);
+  text(s, "Unbalanced history", 458, 210, 310, 28, { size: 22, bold: true, color: C.orange });
+  text(s, "6 A  /  2 B", 458, 252, 310, 38, { size: 29, bold: true, color: C.ink });
+  text(s, "The context supplies an A-heavy prior.", 458, 312, 310, 76, { size: 22, color: C.body, lineSpacing: 1.12 });
+
+  shape(s, "rect", 812, 198, 1.25, 294, C.line);
+  text(s, "Balanced history", 862, 210, 300, 28, { size: 22, bold: true, color: C.teal });
+  text(s, "4 A  /  4 B", 862, 252, 300, 38, { size: 29, bold: true, color: C.ink });
+  text(s, "Now option content can carry more of the signal.", 862, 312, 300, 76, { size: 22, color: C.body, lineSpacing: 1.12 });
+
+  academicPoint(s, "Keep the model, target choices, history length, and score fixed; change the label balance.", 570, 20);
+  notes(s, "All forty future trials are retained, giving 19 A and 21 B targets. Each participant's first eight history trials contain six A and two B choices. The balanced condition resamples eight earlier trials as four A and four B. Option order is counterbalanced in scoring.\n[Sources]\n- notebooks/results/clean_icl_balance_demo/summary.csv\n[/Sources]");
+}
+
+// Clean ICL result
+{
+  const s = newSlide(p);
+  header(s, "Balancing the history restores probability quality", "Prediction / in-context learning result", 24, 1,
+    "40 held-out choices / lower log loss is better");
+
+  text(s, "Condition", 84, 204, 480, 26, { size: TYPE.tableHeader, bold: true, color: C.muted });
+  text(s, "Mean P(B)", 700, 204, 170, 26, { size: TYPE.tableHeader, bold: true, color: C.muted, align: "center" });
+  text(s, "Log loss", 954, 204, 170, 26, { size: TYPE.tableHeader, bold: true, color: C.muted, align: "center" });
+  const rows = [
+    ["Current trial only", "0.496", "0.667", C.blue],
+    ["Unbalanced history  /  6 A + 2 B", "0.427", "0.700", C.orange],
+    ["Balanced history  /  4 A + 4 B", "0.570", "0.659", C.teal],
+  ];
+  rows.forEach((row, i) => {
+    const y = 258 + i * 82;
+    text(s, row[0], 84, y, 520, 42, { size: 23, bold: i === 2, color: row[3], valign: "middle" });
+    text(s, row[1], 700, y, 170, 42, { size: 25, bold: true, color: row[3], align: "center", valign: "middle" });
+    text(s, row[2], 954, y, 170, 42, { size: 25, bold: true, color: row[3], align: "center", valign: "middle" });
+    shape(s, "rect", 84, y + 58, 1040, 1, C.line);
+  });
+  text(s, "Observed B rate = 0.525   |   Random log loss = 0.693", 84, 518, 650, 28, { size: 19, color: C.muted });
+  academicPoint(s, "No clear personalization gain may mean weak individual regularity, or a model that cannot use it.", 574, 20);
+  notes(s, "Unbalanced history pushes mean P(B) below the observed target rate and yields log loss 0.700, slightly worse than an uninformative binary forecast. Balanced history reduces log loss to 0.659, slightly better than the current-trial baseline of 0.667. Accuracy does not improve in parallel, which is why this section evaluates token probabilities with log loss. The remaining null personalization result is compatible with at least two explanations: the participant history may not contain a strong stable individual regularity, or the current model and prompt may be too weak to extract and use it. This experiment does not distinguish those explanations.\n[Sources]\n- notebooks/results/clean_icl_balance_demo/summary.csv\n[/Sources]");
+}
+
 predictionStep(p, 3, "Test whether training participants reveal task-level regularities", "Update parameters on labeled risky choices, then test whether the learned mapping generalizes to held-out people.");
 
 flowSlide(p, {
@@ -1781,7 +1878,7 @@ sectionSlide(
       x: 474, w: 332, color: C.orange, label: "VALIDATION",
       questions: "Q12-Q15 · 4 trials",
       visible: "Predictions and errors",
-      job: "Rank candidates and guide one revision",
+      job: "Rank candidates and guide two revisions",
     },
     {
       x: 864, w: 332, color: C.coral, label: "TEST",
@@ -1800,14 +1897,14 @@ sectionSlide(
     text(s, col.job, col.x, 490, col.w, 72, { size: 21, color: C.body, lineSpacing: 1.1 });
   });
   academicPoint(s, "The split is part of the claim: validation may steer search; test evidence may not.", 580, 20);
-  notes(s, "This teaching-scale example mirrors the participant-level logic of the CCN study while reducing the search to one participant and one revision. The explicit choice conclusion is removed from think-aloud before it enters the proposal prompt. Four validation and four test trials are too small for a substantive scientific conclusion.\n[Sources]\n- https://arxiv.org/abs/2605.05091\n[/Sources]");
+  notes(s, "This teaching-scale example mirrors the participant-level logic of the CCN study while reducing the search to one participant and two validation-guided revisions. The explicit choice conclusion is removed from think-aloud before it enters the proposal prompt. Four validation and four test trials are too small for a substantive scientific conclusion.\n[Sources]\n- https://arxiv.org/abs/2605.05091\n[/Sources]");
 }
 
 // Minimal discovery loop: division of labor
 {
   const s = newSlide(p);
   header(s, "DeepSeek proposes; trusted Python controls the search", "Model discovery / minimal loop", 49, 4,
-    "Two DeepSeek V4 Pro calls · restricted seven-variable model language");
+    "Three DeepSeek V4 Pro calls / restricted seven-variable model language");
 
   text(s, "1 · PROPOSE", 84, 210, 250, 26, { size: 17, bold: true, color: C.blue });
   text(s, "DeepSeek V4 Pro", 84, 250, 300, 38, { size: 27, bold: true, color: C.ink });
@@ -1822,8 +1919,8 @@ sectionSlide(
   arrow(s, 826, 330, 54, 60);
 
   text(s, "3 · REVISE + TEST", 908, 210, 286, 26, { size: 17, bold: true, color: C.coral });
-  text(s, "One feedback round", 908, 250, 286, 38, { size: 27, bold: true, color: C.ink });
-  text(s, "DeepSeek sees validation errors and revises three candidates. Python selects one, refits, then opens test once.", 908, 306, 286, 146, { size: 22, color: C.body, lineSpacing: 1.14 });
+  text(s, "Two feedback rounds", 908, 250, 286, 38, { size: 27, bold: true, color: C.ink });
+  text(s, "DeepSeek sees validation errors twice. Python stops at the plateau, selects one candidate, refits, then opens test once.", 908, 306, 286, 146, { size: 22, color: C.body, lineSpacing: 1.14 });
 
   shape(s, "rect", 84, 486, 1110, 1.25, C.line);
   text(s, "Allowed candidate", 84, 512, 190, 24, { size: 16, bold: true, color: C.muted });
@@ -1833,17 +1930,44 @@ sectionSlide(
   notes(s, "This is the minimal executable loop implemented in Notebook 3 and scripts/minimal_discovery_loop.py. DeepSeek proposes feature sets and process hypotheses in JSON. Trusted code performs validation, fitting, selection, and testing.\n[Sources]\n- https://api-docs.deepseek.com/api/create-chat-completion\n- https://arxiv.org/abs/2605.05091\n[/Sources]");
 }
 
+// Baselines define what a discovered model must improve upon
+{
+  const s = newSlide(p);
+  header(s, "Each baseline rules out a different easy explanation", "Model discovery / comparison contract", 50, 4,
+    "Fix comparison models before opening the test set");
+
+  const rows = [
+    ["Random probability", "Can the workflow beat an uninformative 50/50 forecast?", C.muted],
+    ["Training choice rate", "Does it beat a constant forecast based only on A/B prevalence?", C.orange],
+    ["Expected value", "Does the discovered structure improve on a canonical decision rule?", C.blue],
+    ["Best single feature", "Does combining variables add value beyond one selected cue?", C.purple],
+    ["All approved features", "How much prediction is lost by restricting the candidate language?", C.teal],
+  ];
+  text(s, "BASELINE", 84, 200, 300, 26, { size: TYPE.tableHeader, bold: true, color: C.muted });
+  text(s, "QUESTION IT ANSWERS", 432, 200, 710, 26, { size: TYPE.tableHeader, bold: true, color: C.muted });
+  rows.forEach((row, i) => {
+    const y = 244 + i * 66;
+    text(s, row[0], 84, y, 300, 40, { size: TYPE.tableBody, bold: true, color: row[2], valign: "middle" });
+    text(s, row[1], 432, y, 710, 40, { size: TYPE.tableBody, color: C.body, valign: "middle" });
+    shape(s, "rect", 84, y + 50, 1058, 1, C.line);
+  });
+  academicPoint(s, "A candidate is informative only if we know which simpler explanation it beats.", 584, 20);
+  notes(s, "These baselines are evaluated by trusted Python on the same frozen test trials. The all-feature model is an upper-capacity comparison, not a cognitive theory; with only four test trials its estimate is highly unstable.\n[Sources]\n- notebooks/results/minimal_discovery_loop/test_results.csv\n[/Sources]");
+}
+
 // Minimal discovery loop: cached live result
 {
   const s = newSlide(p);
-  header(s, "The first runnable loop does not win the held-out test", "Model discovery / result", 50, 4,
-    "Cached DeepSeek V4 Pro run · four validation trials · four test trials");
+  header(s, "More search rounds plateau before the test is opened", "Model discovery / result", 51, 4,
+    "Cached DeepSeek V4 Pro run / four validation trials / four test trials");
 
-  text(s, "Candidate selected on validation", 84, 210, 500, 30, { size: 24, bold: true, color: C.blue });
-  text(s, "Probability-of-zero avoidance", 84, 258, 500, 36, { size: 28, bold: true, color: C.ink });
+  text(s, "Best validation log loss", 84, 210, 500, 30, { size: 24, bold: true, color: C.blue });
+  text(s, "0.663  ->  0.663  ->  0.663", 84, 258, 500, 36, { size: 28, bold: true, color: C.ink });
   text(s, "ev_diff + p_zero_diff", 84, 308, 500, 30, { size: 22, typeface: MONO, color: C.purple });
-  text(s, "Validation log loss  0.663", 84, 370, 500, 34, { size: 23, color: C.body });
-  text(s, "Validation balanced accuracy  0.750", 84, 414, 500, 34, { size: 23, color: C.body });
+  text(s, "Initial proposal", 84, 370, 140, 30, { size: 18, color: C.muted });
+  text(s, "Revision 1", 258, 370, 140, 30, { size: 18, color: C.muted });
+  text(s, "Revision 2", 432, 370, 140, 30, { size: 18, color: C.muted });
+  text(s, "Stop: no validation improvement", 84, 430, 500, 34, { size: 23, bold: true, color: C.coral });
 
   shape(s, "rect", 620, 210, 1.25, 330, C.line);
   text(s, "Frozen test comparison", 668, 210, 480, 30, { size: 24, bold: true, color: C.blue });
@@ -1854,16 +1978,18 @@ sectionSlide(
     ["All-feature baseline", "0.248", "1.000", C.teal],
     ["Expected-value baseline", "0.453", "0.750", C.blue],
     ["DeepSeek-selected", "0.534", "0.500", C.coral],
+    ["Best single feature", "0.607", "0.750", C.purple],
+    ["Random probability", "0.693", "0.500", C.muted],
   ];
   results.forEach((row, i) => {
-    const y = 318 + i * 68;
-    text(s, row[0], 668, y, 250, 38, { size: 20, bold: i === 2, color: row[3], valign: "middle" });
-    text(s, row[1], 932, y, 100, 38, { size: 22, bold: true, color: row[3], align: "center", valign: "middle" });
-    text(s, row[2], 1050, y, 110, 38, { size: 22, bold: true, color: row[3], align: "center", valign: "middle" });
-    shape(s, "rect", 668, y + 50, 492, 1, C.line);
+    const y = 310 + i * 45;
+    text(s, row[0], 668, y, 250, 30, { size: 17, bold: i === 2, color: row[3], valign: "middle" });
+    text(s, row[1], 932, y, 100, 30, { size: 19, bold: true, color: row[3], align: "center", valign: "middle" });
+    text(s, row[2], 1050, y, 110, 30, { size: 19, bold: true, color: row[3], align: "center", valign: "middle" });
+    shape(s, "rect", 668, y + 36, 492, 1, C.line);
   });
-  academicPoint(s, "A completed loop is evidence that the workflow runs—not that it discovered the mechanism.", 566, 20);
-  notes(s, "The candidate with the lowest validation log loss was selected before test access. On four test questions it underperformed both pre-registered baselines. The all-feature baseline has eight fitted parameters and only four test trials, so its perfect balanced accuracy is descriptive, not a stable estimate.\n[Sources]\n- notebooks/results/minimal_discovery_loop/minimal_discovery_run.json\n[/Sources]");
+  academicPoint(s, "More iterations did not improve validation, and the selected candidate still lost to expected value on test.", 566, 20);
+  notes(s, "The initial proposal and both validation-guided revisions selected the same two-feature structure with validation log loss 0.663. The test set remained closed until selection. On four test questions the selected candidate underperformed the expected-value and all-feature baselines. The all-feature baseline has eight fitted parameters and only four test trials, so its perfect balanced accuracy is descriptive, not a stable estimate.\n[Sources]\n- notebooks/results/minimal_discovery_loop/minimal_discovery_run.json\n- notebooks/results/minimal_discovery_loop/validation_results.csv\n- notebooks/results/minimal_discovery_loop/test_results.csv\n[/Sources]");
 }
 
 // 48 Diagnostic trial

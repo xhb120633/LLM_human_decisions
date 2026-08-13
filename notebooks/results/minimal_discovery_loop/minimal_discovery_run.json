@@ -26,62 +26,539 @@
       "Q18",
       "Q19"
     ],
+    "search_iterations": 3,
     "test_access": "opened once after candidate selection"
   },
   "proposal": {
     "model": "deepseek-v4-pro",
     "usage": {
       "prompt_tokens": 2994,
-      "completion_tokens": 608
+      "completion_tokens": 646
     },
     "content": {
       "candidates": [
         {
-          "name": "Expected value maximization",
+          "name": "Expected value maximizer",
           "features": [
             "ev_diff"
           ],
-          "process_hypothesis": "Choices are made by comparing expected values; the option with higher expected value is selected.",
-          "trace_evidence": "In Q01, Q03, Q07, Q08, Q11, the participant explicitly computes expected values and chooses the option with higher EV. In Q02, Q04, Q05, Q06, Q09, Q10, EVs are equal, and the participant then considers other factors."
+          "process_hypothesis": "Choices are made by comparing the expected values of the two options and selecting the one with the higher expected value.",
+          "trace_evidence": "In Q01, Q03, Q07, Q08, and Q11, the participant explicitly computes expected values and chooses the option with the higher EV. In Q02, Q04, Q05, Q06, Q09, and Q10, when EVs are equal, the participant uses additional criteria, but the initial computation is always EV."
         },
         {
-          "name": "Risk avoidance for equal EV",
+          "name": "Risk aversion in gains, risk seeking in losses",
           "features": [
             "ev_diff",
-            "sd_diff"
+            "sd_diff",
+            "certain_diff"
           ],
-          "process_hypothesis": "When expected values are equal, the option with lower outcome standard deviation (less risk) is preferred.",
-          "trace_evidence": "In Q05 and Q10, with equal EVs, the participant chooses the certain option (B) citing risk avoidance. In Q02, Q04, Q06, Q09, the participant also mentions risk or chance of loss, but choices vary: Q02 and Q09 choose A (lower probability of loss), Q04 chooses B (lower worst outcome), Q06 chooses B (higher chance of winning)."
+          "process_hypothesis": "Choices reflect a preference for certainty in gains and a preference for risk in losses, consistent with prospect theory's reflection effect, while also considering expected value.",
+          "trace_evidence": "In Q05 (gains), the participant chooses the certain $5 over the risky $5000 gamble despite equal EV, citing risk avoidance. In Q02 (losses), the participant chooses the risky option A over certain loss B despite equal EV, citing the chance to avoid loss. This pattern is consistent with risk aversion in gains and risk seeking in losses."
         },
         {
-          "name": "Probability of zero avoidance",
+          "name": "Minimize probability of loss",
           "features": [
-            "ev_diff",
-            "p_zero_diff"
+            "p_zero_diff",
+            "ev_diff"
           ],
-          "process_hypothesis": "When expected values are equal, the option with lower probability of zero outcome (or higher chance of non-zero) is preferred.",
-          "trace_evidence": "In Q06, with equal EVs, the participant notes Option B has twice the chance of winning and chooses B. In Q09, with equal EVs, the participant notes Option A has a 55% chance of no loss vs 10% for B, and chooses A. In Q02, with equal EVs, the participant notes Option A has a 20% chance of no loss vs 0% for B, and chooses A."
+          "process_hypothesis": "Choices are driven by minimizing the probability of experiencing a loss, especially when expected values are similar or equal.",
+          "trace_evidence": "In Q09, the participant notes that Option A has a lower risk of losing money (55% chance of no loss vs 10% for B) and chooses A despite equal EV. In Q04, the participant chooses B because the potential loss is smaller, but also notes the probability of zero is higher in B (50% vs 75%? Actually B has 50% zero, A has 75% zero, so this contradicts; but the participant focuses on worst outcome). However, in Q02, the participant chooses A because of the 20% chance to lose nothing, which is a higher probability of zero than B (0%)."
         },
         {
           "name": "Worst outcome avoidance",
           "features": [
-            "ev_diff",
-            "worst_diff"
+            "worst_diff",
+            "ev_diff"
           ],
-          "process_hypothesis": "When expected values are equal, the option with the better (less negative) worst outcome is preferred.",
-          "trace_evidence": "In Q04, with equal EVs, the participant notes Option A has a potential loss of -6000 while Option B's worst is -4000, and chooses B. In Q10, with equal EVs, the participant notes Option A has a risk of losing $5000 while Option B is a certain small loss, and chooses B. In Q05, with equal EVs, the participant notes Option A has a chance of nothing while Option B is certain $5, and chooses B."
+          "process_hypothesis": "Choices are influenced by the worst possible outcome, with a preference for options that have a less severe worst outcome, especially when expected values are equal.",
+          "trace_evidence": "In Q04, the participant explicitly states that the potential loss is greater in Option A (-6000) compared to Option B (-4000) and chooses B despite equal EV. In Q10, the participant notes the risk of losing a significant amount in Option A and chooses the certain small loss B."
         }
       ]
     }
   },
+  "search_iterations": [
+    {
+      "iteration": 0,
+      "stage": "initial proposal",
+      "response": {
+        "model": "deepseek-v4-pro",
+        "usage": {
+          "prompt_tokens": 2994,
+          "completion_tokens": 646
+        },
+        "content": {
+          "candidates": [
+            {
+              "name": "Expected value maximizer",
+              "features": [
+                "ev_diff"
+              ],
+              "process_hypothesis": "Choices are made by comparing the expected values of the two options and selecting the one with the higher expected value.",
+              "trace_evidence": "In Q01, Q03, Q07, Q08, and Q11, the participant explicitly computes expected values and chooses the option with the higher EV. In Q02, Q04, Q05, Q06, Q09, and Q10, when EVs are equal, the participant uses additional criteria, but the initial computation is always EV."
+            },
+            {
+              "name": "Risk aversion in gains, risk seeking in losses",
+              "features": [
+                "ev_diff",
+                "sd_diff",
+                "certain_diff"
+              ],
+              "process_hypothesis": "Choices reflect a preference for certainty in gains and a preference for risk in losses, consistent with prospect theory's reflection effect, while also considering expected value.",
+              "trace_evidence": "In Q05 (gains), the participant chooses the certain $5 over the risky $5000 gamble despite equal EV, citing risk avoidance. In Q02 (losses), the participant chooses the risky option A over certain loss B despite equal EV, citing the chance to avoid loss. This pattern is consistent with risk aversion in gains and risk seeking in losses."
+            },
+            {
+              "name": "Minimize probability of loss",
+              "features": [
+                "p_zero_diff",
+                "ev_diff"
+              ],
+              "process_hypothesis": "Choices are driven by minimizing the probability of experiencing a loss, especially when expected values are similar or equal.",
+              "trace_evidence": "In Q09, the participant notes that Option A has a lower risk of losing money (55% chance of no loss vs 10% for B) and chooses A despite equal EV. In Q04, the participant chooses B because the potential loss is smaller, but also notes the probability of zero is higher in B (50% vs 75%? Actually B has 50% zero, A has 75% zero, so this contradicts; but the participant focuses on worst outcome). However, in Q02, the participant chooses A because of the 20% chance to lose nothing, which is a higher probability of zero than B (0%)."
+            },
+            {
+              "name": "Worst outcome avoidance",
+              "features": [
+                "worst_diff",
+                "ev_diff"
+              ],
+              "process_hypothesis": "Choices are influenced by the worst possible outcome, with a preference for options that have a less severe worst outcome, especially when expected values are equal.",
+              "trace_evidence": "In Q04, the participant explicitly states that the potential loss is greater in Option A (-6000) compared to Option B (-4000) and chooses B despite equal EV. In Q10, the participant notes the risk of losing a significant amount in Option A and chooses the certain small loss B."
+            }
+          ]
+        }
+      },
+      "candidates": [
+        {
+          "name": "Expected value maximizer",
+          "features": [
+            "ev_diff"
+          ],
+          "process_hypothesis": "Choices are made by comparing the expected values of the two options and selecting the one with the higher expected value.",
+          "trace_evidence": "In Q01, Q03, Q07, Q08, and Q11, the participant explicitly computes expected values and chooses the option with the higher EV. In Q02, Q04, Q05, Q06, Q09, and Q10, when EVs are equal, the participant uses additional criteria, but the initial computation is always EV.",
+          "revision_reason": ""
+        },
+        {
+          "name": "Risk aversion in gains, risk seeking in losses",
+          "features": [
+            "ev_diff",
+            "sd_diff",
+            "certain_diff"
+          ],
+          "process_hypothesis": "Choices reflect a preference for certainty in gains and a preference for risk in losses, consistent with prospect theory's reflection effect, while also considering expected value.",
+          "trace_evidence": "In Q05 (gains), the participant chooses the certain $5 over the risky $5000 gamble despite equal EV, citing risk avoidance. In Q02 (losses), the participant chooses the risky option A over certain loss B despite equal EV, citing the chance to avoid loss. This pattern is consistent with risk aversion in gains and risk seeking in losses.",
+          "revision_reason": ""
+        },
+        {
+          "name": "Minimize probability of loss",
+          "features": [
+            "p_zero_diff",
+            "ev_diff"
+          ],
+          "process_hypothesis": "Choices are driven by minimizing the probability of experiencing a loss, especially when expected values are similar or equal.",
+          "trace_evidence": "In Q09, the participant notes that Option A has a lower risk of losing money (55% chance of no loss vs 10% for B) and chooses A despite equal EV. In Q04, the participant chooses B because the potential loss is smaller, but also notes the probability of zero is higher in B (50% vs 75%? Actually B has 50% zero, A has 75% zero, so this contradicts; but the participant focuses on worst outcome). However, in Q02, the participant chooses A because of the 20% chance to lose nothing, which is a higher p",
+          "revision_reason": ""
+        },
+        {
+          "name": "Worst outcome avoidance",
+          "features": [
+            "worst_diff",
+            "ev_diff"
+          ],
+          "process_hypothesis": "Choices are influenced by the worst possible outcome, with a preference for options that have a less severe worst outcome, especially when expected values are equal.",
+          "trace_evidence": "In Q04, the participant explicitly states that the potential loss is greater in Option A (-6000) compared to Option B (-4000) and chooses B despite equal EV. In Q10, the participant notes the risk of losing a significant amount in Option A and chooses the certain small loss B.",
+          "revision_reason": ""
+        }
+      ],
+      "validation": [
+        {
+          "name": "Expected value maximizer",
+          "features": [
+            "ev_diff"
+          ],
+          "process_hypothesis": "Choices are made by comparing the expected values of the two options and selecting the one with the higher expected value.",
+          "trace_evidence": "In Q01, Q03, Q07, Q08, and Q11, the participant explicitly computes expected values and chooses the option with the higher EV. In Q02, Q04, Q05, Q06, Q09, and Q10, when EVs are equal, the participant uses additional criteria, but the initial computation is always EV.",
+          "validation_balanced_accuracy": 0.5,
+          "validation_log_loss": 0.6799509500850159,
+          "validation_errors": [
+            {
+              "question_id": "Q12",
+              "actual": "A",
+              "predicted": "B",
+              "p_B": 0.512
+            },
+            {
+              "question_id": "Q15",
+              "actual": "A",
+              "predicted": "B",
+              "p_B": 0.544
+            }
+          ]
+        },
+        {
+          "name": "Risk aversion in gains, risk seeking in losses",
+          "features": [
+            "ev_diff",
+            "sd_diff",
+            "certain_diff"
+          ],
+          "process_hypothesis": "Choices reflect a preference for certainty in gains and a preference for risk in losses, consistent with prospect theory's reflection effect, while also considering expected value.",
+          "trace_evidence": "In Q05 (gains), the participant chooses the certain $5 over the risky $5000 gamble despite equal EV, citing risk avoidance. In Q02 (losses), the participant chooses the risky option A over certain loss B despite equal EV, citing the chance to avoid loss. This pattern is consistent with risk aversion in gains and risk seeking in losses.",
+          "validation_balanced_accuracy": 0.5,
+          "validation_log_loss": 0.9182749402522394,
+          "validation_errors": [
+            {
+              "question_id": "Q12",
+              "actual": "A",
+              "predicted": "B",
+              "p_B": 0.721
+            },
+            {
+              "question_id": "Q14",
+              "actual": "B",
+              "predicted": "A",
+              "p_B": 0.292
+            }
+          ]
+        },
+        {
+          "name": "Minimize probability of loss",
+          "features": [
+            "p_zero_diff",
+            "ev_diff"
+          ],
+          "process_hypothesis": "Choices are driven by minimizing the probability of experiencing a loss, especially when expected values are similar or equal.",
+          "trace_evidence": "In Q09, the participant notes that Option A has a lower risk of losing money (55% chance of no loss vs 10% for B) and chooses A despite equal EV. In Q04, the participant chooses B because the potential loss is smaller, but also notes the probability of zero is higher in B (50% vs 75%? Actually B has 50% zero, A has 75% zero, so this contradicts; but the participant focuses on worst outcome). However, in Q02, the participant chooses A because of the 20% chance to lose nothing, which is a higher p",
+          "validation_balanced_accuracy": 0.75,
+          "validation_log_loss": 0.6630173601237348,
+          "validation_errors": [
+            {
+              "question_id": "Q15",
+              "actual": "A",
+              "predicted": "B",
+              "p_B": 0.57
+            }
+          ]
+        },
+        {
+          "name": "Worst outcome avoidance",
+          "features": [
+            "worst_diff",
+            "ev_diff"
+          ],
+          "process_hypothesis": "Choices are influenced by the worst possible outcome, with a preference for options that have a less severe worst outcome, especially when expected values are equal.",
+          "trace_evidence": "In Q04, the participant explicitly states that the potential loss is greater in Option A (-6000) compared to Option B (-4000) and chooses B despite equal EV. In Q10, the participant notes the risk of losing a significant amount in Option A and chooses the certain small loss B.",
+          "validation_balanced_accuracy": 0.75,
+          "validation_log_loss": 0.6833840748519149,
+          "validation_errors": [
+            {
+              "question_id": "Q15",
+              "actual": "A",
+              "predicted": "B",
+              "p_B": 0.522
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "stage": "revision 1",
+      "response": {
+        "model": "deepseek-v4-pro",
+        "usage": {
+          "prompt_tokens": 4123,
+          "completion_tokens": 645
+        },
+        "content": {
+          "candidates": [
+            {
+              "name": "Minimize probability of loss with EV",
+              "features": [
+                "p_zero_diff",
+                "ev_diff"
+              ],
+              "process_hypothesis": "Choices are driven by minimizing the probability of experiencing a loss, especially when expected values are similar or equal, while also considering expected value differences.",
+              "trace_evidence": "In Q09, the participant notes that Option A has a lower risk of losing money (55% chance of no loss vs 10% for B) and chooses A despite equal EV. In Q02, the participant chooses A because of the 20% chance to lose nothing, which is a higher probability of zero than B. In Q05, the participant chooses the certain $5 (100% chance of no loss) over the risky $5000 gamble (99.9% chance of no loss) despite equal EV, showing preference for higher p_zero.",
+              "revision_reason": "Retained from previous candidates because it had the best validation performance (log loss 0.663, accuracy 0.75)."
+            },
+            {
+              "name": "Worst outcome avoidance with EV",
+              "features": [
+                "worst_diff",
+                "ev_diff"
+              ],
+              "process_hypothesis": "Choices are influenced by the worst possible outcome, with a preference for options that have a less severe worst outcome, especially when expected values are equal.",
+              "trace_evidence": "In Q04, the participant explicitly states that the potential loss is greater in Option A (-6000) compared to Option B (-4000) and chooses B despite equal EV. In Q10, the participant notes the risk of losing a significant amount in Option A and chooses the certain small loss B.",
+              "revision_reason": "Retained from previous candidates because it also had good validation performance (log loss 0.683, accuracy 0.75) and captures a different aspect of decision-making."
+            },
+            {
+              "name": "EV and probability of zero combined",
+              "features": [
+                "ev_diff",
+                "p_zero_diff",
+                "worst_diff"
+              ],
+              "process_hypothesis": "Choices are based on a combination of expected value, probability of zero outcome, and worst outcome, with emphasis on avoiding losses and maximizing expected value.",
+              "trace_evidence": "Across multiple questions, the participant considers expected value first, then when EVs are equal or close, they focus on the probability of avoiding loss (p_zero) and the severity of worst outcome. For example, in Q09, they note the lower risk of losing money (p_zero) and choose A; in Q04, they note the smaller worst loss and choose B; in Q02, they choose A for the chance to lose nothing. Combining these features may capture the decision process more comprehensively.",
+              "revision_reason": "Combined the two best-performing candidates by adding worst_diff to the p_zero_diff and ev_diff features, hoping to capture both loss probability and severity aspects."
+            }
+          ]
+        }
+      },
+      "candidates": [
+        {
+          "name": "Minimize probability of loss with EV",
+          "features": [
+            "p_zero_diff",
+            "ev_diff"
+          ],
+          "process_hypothesis": "Choices are driven by minimizing the probability of experiencing a loss, especially when expected values are similar or equal, while also considering expected value differences.",
+          "trace_evidence": "In Q09, the participant notes that Option A has a lower risk of losing money (55% chance of no loss vs 10% for B) and chooses A despite equal EV. In Q02, the participant chooses A because of the 20% chance to lose nothing, which is a higher probability of zero than B. In Q05, the participant chooses the certain $5 (100% chance of no loss) over the risky $5000 gamble (99.9% chance of no loss) despite equal EV, showing preference for higher p_zero.",
+          "revision_reason": "Retained from previous candidates because it had the best validation performance (log loss 0.663, accuracy 0.75)."
+        },
+        {
+          "name": "Worst outcome avoidance with EV",
+          "features": [
+            "worst_diff",
+            "ev_diff"
+          ],
+          "process_hypothesis": "Choices are influenced by the worst possible outcome, with a preference for options that have a less severe worst outcome, especially when expected values are equal.",
+          "trace_evidence": "In Q04, the participant explicitly states that the potential loss is greater in Option A (-6000) compared to Option B (-4000) and chooses B despite equal EV. In Q10, the participant notes the risk of losing a significant amount in Option A and chooses the certain small loss B.",
+          "revision_reason": "Retained from previous candidates because it also had good validation performance (log loss 0.683, accuracy 0.75) and captures a different aspect of decision-making."
+        },
+        {
+          "name": "EV and probability of zero combined",
+          "features": [
+            "ev_diff",
+            "p_zero_diff",
+            "worst_diff"
+          ],
+          "process_hypothesis": "Choices are based on a combination of expected value, probability of zero outcome, and worst outcome, with emphasis on avoiding losses and maximizing expected value.",
+          "trace_evidence": "Across multiple questions, the participant considers expected value first, then when EVs are equal or close, they focus on the probability of avoiding loss (p_zero) and the severity of worst outcome. For example, in Q09, they note the lower risk of losing money (p_zero) and choose A; in Q04, they note the smaller worst loss and choose B; in Q02, they choose A for the chance to lose nothing. Combining these features may capture the decision process more comprehensively.",
+          "revision_reason": "Combined the two best-performing candidates by adding worst_diff to the p_zero_diff and ev_diff features, hoping to capture both loss probability and severity aspects."
+        }
+      ],
+      "validation": [
+        {
+          "name": "Minimize probability of loss with EV",
+          "features": [
+            "p_zero_diff",
+            "ev_diff"
+          ],
+          "process_hypothesis": "Choices are driven by minimizing the probability of experiencing a loss, especially when expected values are similar or equal, while also considering expected value differences.",
+          "trace_evidence": "In Q09, the participant notes that Option A has a lower risk of losing money (55% chance of no loss vs 10% for B) and chooses A despite equal EV. In Q02, the participant chooses A because of the 20% chance to lose nothing, which is a higher probability of zero than B. In Q05, the participant chooses the certain $5 (100% chance of no loss) over the risky $5000 gamble (99.9% chance of no loss) despite equal EV, showing preference for higher p_zero.",
+          "validation_balanced_accuracy": 0.75,
+          "validation_log_loss": 0.6630173601237348,
+          "validation_errors": [
+            {
+              "question_id": "Q15",
+              "actual": "A",
+              "predicted": "B",
+              "p_B": 0.57
+            }
+          ]
+        },
+        {
+          "name": "Worst outcome avoidance with EV",
+          "features": [
+            "worst_diff",
+            "ev_diff"
+          ],
+          "process_hypothesis": "Choices are influenced by the worst possible outcome, with a preference for options that have a less severe worst outcome, especially when expected values are equal.",
+          "trace_evidence": "In Q04, the participant explicitly states that the potential loss is greater in Option A (-6000) compared to Option B (-4000) and chooses B despite equal EV. In Q10, the participant notes the risk of losing a significant amount in Option A and chooses the certain small loss B.",
+          "validation_balanced_accuracy": 0.75,
+          "validation_log_loss": 0.6833840748519149,
+          "validation_errors": [
+            {
+              "question_id": "Q15",
+              "actual": "A",
+              "predicted": "B",
+              "p_B": 0.522
+            }
+          ]
+        },
+        {
+          "name": "EV and probability of zero combined",
+          "features": [
+            "ev_diff",
+            "p_zero_diff",
+            "worst_diff"
+          ],
+          "process_hypothesis": "Choices are based on a combination of expected value, probability of zero outcome, and worst outcome, with emphasis on avoiding losses and maximizing expected value.",
+          "trace_evidence": "Across multiple questions, the participant considers expected value first, then when EVs are equal or close, they focus on the probability of avoiding loss (p_zero) and the severity of worst outcome. For example, in Q09, they note the lower risk of losing money (p_zero) and choose A; in Q04, they note the smaller worst loss and choose B; in Q02, they choose A for the chance to lose nothing. Combining these features may capture the decision process more comprehensively.",
+          "validation_balanced_accuracy": 0.5,
+          "validation_log_loss": 0.6666139415191116,
+          "validation_errors": [
+            {
+              "question_id": "Q13",
+              "actual": "B",
+              "predicted": "A",
+              "p_B": 0.498
+            },
+            {
+              "question_id": "Q15",
+              "actual": "A",
+              "predicted": "B",
+              "p_B": 0.556
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "stage": "revision 2",
+      "response": {
+        "model": "deepseek-v4-pro",
+        "usage": {
+          "prompt_tokens": 3960,
+          "completion_tokens": 645
+        },
+        "content": {
+          "candidates": [
+            {
+              "name": "Minimize probability of loss with EV",
+              "features": [
+                "p_zero_diff",
+                "ev_diff"
+              ],
+              "process_hypothesis": "Choices are driven by minimizing the probability of experiencing a loss, especially when expected values are similar or equal, while also considering expected value differences.",
+              "trace_evidence": "In Q09, the participant notes that Option A has a lower risk of losing money (55% chance of no loss vs 10% for B) and chooses A despite equal EV. In Q02, the participant chooses A because of the 20% chance to lose nothing, which is a higher probability of zero than B. In Q05, the participant chooses the certain $5 (100% chance of no loss) over the risky $5000 gamble (99.9% chance of no loss) despite equal EV, showing preference for higher p_zero.",
+              "revision_reason": "Retained from previous candidates because it had the best validation performance (log loss 0.663, accuracy 0.75)."
+            },
+            {
+              "name": "Worst outcome avoidance with EV",
+              "features": [
+                "worst_diff",
+                "ev_diff"
+              ],
+              "process_hypothesis": "Choices are influenced by the worst possible outcome, with a preference for options that have a less severe worst outcome, especially when expected values are equal.",
+              "trace_evidence": "In Q04, the participant explicitly states that the potential loss is greater in Option A (-6000) compared to Option B (-4000) and chooses B despite equal EV. In Q10, the participant notes the risk of losing a significant amount in Option A and chooses the certain small loss B.",
+              "revision_reason": "Retained from previous candidates because it also had good validation performance (log loss 0.683, accuracy 0.75) and captures a different aspect of decision-making."
+            },
+            {
+              "name": "EV and probability of zero combined",
+              "features": [
+                "ev_diff",
+                "p_zero_diff",
+                "worst_diff"
+              ],
+              "process_hypothesis": "Choices are based on a combination of expected value, probability of zero outcome, and worst outcome, with emphasis on avoiding losses and maximizing expected value.",
+              "trace_evidence": "Across multiple questions, the participant considers expected value first, then when EVs are equal or close, they focus on the probability of avoiding loss (p_zero) and the severity of worst outcome. For example, in Q09, they note the lower risk of losing money (p_zero) and choose A; in Q04, they note the smaller worst loss and choose B; in Q02, they choose A for the chance to lose nothing. Combining these features may capture the decision process more comprehensively.",
+              "revision_reason": "Combined the two best-performing candidates by adding worst_diff to the p_zero_diff and ev_diff features, hoping to capture both loss probability and severity aspects."
+            }
+          ]
+        }
+      },
+      "candidates": [
+        {
+          "name": "Minimize probability of loss with EV",
+          "features": [
+            "p_zero_diff",
+            "ev_diff"
+          ],
+          "process_hypothesis": "Choices are driven by minimizing the probability of experiencing a loss, especially when expected values are similar or equal, while also considering expected value differences.",
+          "trace_evidence": "In Q09, the participant notes that Option A has a lower risk of losing money (55% chance of no loss vs 10% for B) and chooses A despite equal EV. In Q02, the participant chooses A because of the 20% chance to lose nothing, which is a higher probability of zero than B. In Q05, the participant chooses the certain $5 (100% chance of no loss) over the risky $5000 gamble (99.9% chance of no loss) despite equal EV, showing preference for higher p_zero.",
+          "revision_reason": "Retained from previous candidates because it had the best validation performance (log loss 0.663, accuracy 0.75)."
+        },
+        {
+          "name": "Worst outcome avoidance with EV",
+          "features": [
+            "worst_diff",
+            "ev_diff"
+          ],
+          "process_hypothesis": "Choices are influenced by the worst possible outcome, with a preference for options that have a less severe worst outcome, especially when expected values are equal.",
+          "trace_evidence": "In Q04, the participant explicitly states that the potential loss is greater in Option A (-6000) compared to Option B (-4000) and chooses B despite equal EV. In Q10, the participant notes the risk of losing a significant amount in Option A and chooses the certain small loss B.",
+          "revision_reason": "Retained from previous candidates because it also had good validation performance (log loss 0.683, accuracy 0.75) and captures a different aspect of decision-making."
+        },
+        {
+          "name": "EV and probability of zero combined",
+          "features": [
+            "ev_diff",
+            "p_zero_diff",
+            "worst_diff"
+          ],
+          "process_hypothesis": "Choices are based on a combination of expected value, probability of zero outcome, and worst outcome, with emphasis on avoiding losses and maximizing expected value.",
+          "trace_evidence": "Across multiple questions, the participant considers expected value first, then when EVs are equal or close, they focus on the probability of avoiding loss (p_zero) and the severity of worst outcome. For example, in Q09, they note the lower risk of losing money (p_zero) and choose A; in Q04, they note the smaller worst loss and choose B; in Q02, they choose A for the chance to lose nothing. Combining these features may capture the decision process more comprehensively.",
+          "revision_reason": "Combined the two best-performing candidates by adding worst_diff to the p_zero_diff and ev_diff features, hoping to capture both loss probability and severity aspects."
+        }
+      ],
+      "validation": [
+        {
+          "name": "Minimize probability of loss with EV",
+          "features": [
+            "p_zero_diff",
+            "ev_diff"
+          ],
+          "process_hypothesis": "Choices are driven by minimizing the probability of experiencing a loss, especially when expected values are similar or equal, while also considering expected value differences.",
+          "trace_evidence": "In Q09, the participant notes that Option A has a lower risk of losing money (55% chance of no loss vs 10% for B) and chooses A despite equal EV. In Q02, the participant chooses A because of the 20% chance to lose nothing, which is a higher probability of zero than B. In Q05, the participant chooses the certain $5 (100% chance of no loss) over the risky $5000 gamble (99.9% chance of no loss) despite equal EV, showing preference for higher p_zero.",
+          "validation_balanced_accuracy": 0.75,
+          "validation_log_loss": 0.6630173601237348,
+          "validation_errors": [
+            {
+              "question_id": "Q15",
+              "actual": "A",
+              "predicted": "B",
+              "p_B": 0.57
+            }
+          ]
+        },
+        {
+          "name": "Worst outcome avoidance with EV",
+          "features": [
+            "worst_diff",
+            "ev_diff"
+          ],
+          "process_hypothesis": "Choices are influenced by the worst possible outcome, with a preference for options that have a less severe worst outcome, especially when expected values are equal.",
+          "trace_evidence": "In Q04, the participant explicitly states that the potential loss is greater in Option A (-6000) compared to Option B (-4000) and chooses B despite equal EV. In Q10, the participant notes the risk of losing a significant amount in Option A and chooses the certain small loss B.",
+          "validation_balanced_accuracy": 0.75,
+          "validation_log_loss": 0.6833840748519149,
+          "validation_errors": [
+            {
+              "question_id": "Q15",
+              "actual": "A",
+              "predicted": "B",
+              "p_B": 0.522
+            }
+          ]
+        },
+        {
+          "name": "EV and probability of zero combined",
+          "features": [
+            "ev_diff",
+            "p_zero_diff",
+            "worst_diff"
+          ],
+          "process_hypothesis": "Choices are based on a combination of expected value, probability of zero outcome, and worst outcome, with emphasis on avoiding losses and maximizing expected value.",
+          "trace_evidence": "Across multiple questions, the participant considers expected value first, then when EVs are equal or close, they focus on the probability of avoiding loss (p_zero) and the severity of worst outcome. For example, in Q09, they note the lower risk of losing money (p_zero) and choose A; in Q04, they note the smaller worst loss and choose B; in Q02, they choose A for the chance to lose nothing. Combining these features may capture the decision process more comprehensively.",
+          "validation_balanced_accuracy": 0.5,
+          "validation_log_loss": 0.6666139415191116,
+          "validation_errors": [
+            {
+              "question_id": "Q13",
+              "actual": "B",
+              "predicted": "A",
+              "p_B": 0.498
+            },
+            {
+              "question_id": "Q15",
+              "actual": "A",
+              "predicted": "B",
+              "p_B": 0.556
+            }
+          ]
+        }
+      ]
+    }
+  ],
   "initial_validation": [
     {
-      "name": "Expected value maximization",
+      "name": "Expected value maximizer",
       "features": [
         "ev_diff"
       ],
-      "process_hypothesis": "Choices are made by comparing expected values; the option with higher expected value is selected.",
-      "trace_evidence": "In Q01, Q03, Q07, Q08, Q11, the participant explicitly computes expected values and chooses the option with higher EV. In Q02, Q04, Q05, Q06, Q09, Q10, EVs are equal, and the participant then considers other factors.",
+      "process_hypothesis": "Choices are made by comparing the expected values of the two options and selecting the one with the higher expected value.",
+      "trace_evidence": "In Q01, Q03, Q07, Q08, and Q11, the participant explicitly computes expected values and chooses the option with the higher EV. In Q02, Q04, Q05, Q06, Q09, and Q10, when EVs are equal, the participant uses additional criteria, but the initial computation is always EV.",
       "validation_balanced_accuracy": 0.5,
       "validation_log_loss": 0.6799509500850159,
       "validation_errors": [
@@ -100,50 +577,39 @@
       ]
     },
     {
-      "name": "Risk avoidance for equal EV",
+      "name": "Risk aversion in gains, risk seeking in losses",
       "features": [
         "ev_diff",
-        "sd_diff"
+        "sd_diff",
+        "certain_diff"
       ],
-      "process_hypothesis": "When expected values are equal, the option with lower outcome standard deviation (less risk) is preferred.",
-      "trace_evidence": "In Q05 and Q10, with equal EVs, the participant chooses the certain option (B) citing risk avoidance. In Q02, Q04, Q06, Q09, the participant also mentions risk or chance of loss, but choices vary: Q02 and Q09 choose A (lower probability of loss), Q04 chooses B (lower worst outcome), Q06 chooses B (higher chance of winning).",
-      "validation_balanced_accuracy": 0.0,
-      "validation_log_loss": 0.9460594808825533,
+      "process_hypothesis": "Choices reflect a preference for certainty in gains and a preference for risk in losses, consistent with prospect theory's reflection effect, while also considering expected value.",
+      "trace_evidence": "In Q05 (gains), the participant chooses the certain $5 over the risky $5000 gamble despite equal EV, citing risk avoidance. In Q02 (losses), the participant chooses the risky option A over certain loss B despite equal EV, citing the chance to avoid loss. This pattern is consistent with risk aversion in gains and risk seeking in losses.",
+      "validation_balanced_accuracy": 0.5,
+      "validation_log_loss": 0.9182749402522394,
       "validation_errors": [
         {
           "question_id": "Q12",
           "actual": "A",
           "predicted": "B",
-          "p_B": 0.595
-        },
-        {
-          "question_id": "Q13",
-          "actual": "B",
-          "predicted": "A",
-          "p_B": 0.459
+          "p_B": 0.721
         },
         {
           "question_id": "Q14",
           "actual": "B",
           "predicted": "A",
-          "p_B": 0.266
-        },
-        {
-          "question_id": "Q15",
-          "actual": "A",
-          "predicted": "B",
-          "p_B": 0.541
+          "p_B": 0.292
         }
       ]
     },
     {
-      "name": "Probability of zero avoidance",
+      "name": "Minimize probability of loss",
       "features": [
-        "ev_diff",
-        "p_zero_diff"
+        "p_zero_diff",
+        "ev_diff"
       ],
-      "process_hypothesis": "When expected values are equal, the option with lower probability of zero outcome (or higher chance of non-zero) is preferred.",
-      "trace_evidence": "In Q06, with equal EVs, the participant notes Option B has twice the chance of winning and chooses B. In Q09, with equal EVs, the participant notes Option A has a 55% chance of no loss vs 10% for B, and chooses A. In Q02, with equal EVs, the participant notes Option A has a 20% chance of no loss vs 0% for B, and chooses A.",
+      "process_hypothesis": "Choices are driven by minimizing the probability of experiencing a loss, especially when expected values are similar or equal.",
+      "trace_evidence": "In Q09, the participant notes that Option A has a lower risk of losing money (55% chance of no loss vs 10% for B) and chooses A despite equal EV. In Q04, the participant chooses B because the potential loss is smaller, but also notes the probability of zero is higher in B (50% vs 75%? Actually B has 50% zero, A has 75% zero, so this contradicts; but the participant focuses on worst outcome). However, in Q02, the participant chooses A because of the 20% chance to lose nothing, which is a higher p",
       "validation_balanced_accuracy": 0.75,
       "validation_log_loss": 0.6630173601237348,
       "validation_errors": [
@@ -158,11 +624,11 @@
     {
       "name": "Worst outcome avoidance",
       "features": [
-        "ev_diff",
-        "worst_diff"
+        "worst_diff",
+        "ev_diff"
       ],
-      "process_hypothesis": "When expected values are equal, the option with the better (less negative) worst outcome is preferred.",
-      "trace_evidence": "In Q04, with equal EVs, the participant notes Option A has a potential loss of -6000 while Option B's worst is -4000, and chooses B. In Q10, with equal EVs, the participant notes Option A has a risk of losing $5000 while Option B is a certain small loss, and chooses B. In Q05, with equal EVs, the participant notes Option A has a chance of nothing while Option B is certain $5, and chooses B.",
+      "process_hypothesis": "Choices are influenced by the worst possible outcome, with a preference for options that have a less severe worst outcome, especially when expected values are equal.",
+      "trace_evidence": "In Q04, the participant explicitly states that the potential loss is greater in Option A (-6000) compared to Option B (-4000) and chooses B despite equal EV. In Q10, the participant notes the risk of losing a significant amount in Option A and chooses the certain small loss B.",
       "validation_balanced_accuracy": 0.75,
       "validation_log_loss": 0.6833840748519149,
       "validation_errors": [
@@ -178,55 +644,54 @@
   "revision": {
     "model": "deepseek-v4-pro",
     "usage": {
-      "prompt_tokens": 4158,
-      "completion_tokens": 791
+      "prompt_tokens": 4123,
+      "completion_tokens": 645
     },
     "content": {
       "candidates": [
         {
-          "name": "Probability of zero avoidance",
+          "name": "Minimize probability of loss with EV",
           "features": [
-            "ev_diff",
-            "p_zero_diff"
+            "p_zero_diff",
+            "ev_diff"
           ],
-          "process_hypothesis": "When expected values are equal, the option with lower probability of zero outcome (or higher chance of non-zero) is preferred.",
-          "trace_evidence": "In Q06, with equal EVs, the participant notes Option B has twice the chance of winning and chooses B. In Q09, with equal EVs, the participant notes Option A has a 55% chance of no loss vs 10% for B, and chooses A. In Q02, with equal EVs, the participant notes Option A has a 20% chance of no loss vs 0% for B, and chooses A.",
-          "revision_reason": "This candidate had the best validation performance (log loss 0.663, balanced accuracy 0.75) and only one error on Q15. It is retained unchanged."
+          "process_hypothesis": "Choices are driven by minimizing the probability of experiencing a loss, especially when expected values are similar or equal, while also considering expected value differences.",
+          "trace_evidence": "In Q09, the participant notes that Option A has a lower risk of losing money (55% chance of no loss vs 10% for B) and chooses A despite equal EV. In Q02, the participant chooses A because of the 20% chance to lose nothing, which is a higher probability of zero than B. In Q05, the participant chooses the certain $5 (100% chance of no loss) over the risky $5000 gamble (99.9% chance of no loss) despite equal EV, showing preference for higher p_zero.",
+          "revision_reason": "Retained from previous candidates because it had the best validation performance (log loss 0.663, accuracy 0.75)."
         },
         {
-          "name": "Worst outcome avoidance with probability of zero",
+          "name": "Worst outcome avoidance with EV",
           "features": [
-            "ev_diff",
             "worst_diff",
-            "p_zero_diff"
+            "ev_diff"
           ],
-          "process_hypothesis": "When expected values are equal, the option with better worst outcome and lower probability of zero is preferred.",
-          "trace_evidence": "In Q04, with equal EVs, the participant notes Option A has a potential loss of -6000 while Option B's worst is -4000, and chooses B. In Q10, with equal EVs, the participant notes Option A has a risk of losing $5000 while Option B is a certain small loss, and chooses B. In Q05, with equal EVs, the participant notes Option A has a chance of nothing while Option B is certain $5, and chooses B. In Q06, with equal EVs, the participant notes Option B has twice the chance of winning and chooses B. In Q09, with equal EVs, the participant notes Option A has a 55% chance of no loss vs 10% for B, and chooses A. In Q02, with equal EVs, the participant notes Option A has a 20% chance of no loss vs 0% for B, and chooses A.",
-          "revision_reason": "Combining worst outcome avoidance and probability of zero avoidance may capture more of the decision process when EVs are equal. The individual candidates each had one error on Q15, but combining them might resolve that error if the features are complementary."
+          "process_hypothesis": "Choices are influenced by the worst possible outcome, with a preference for options that have a less severe worst outcome, especially when expected values are equal.",
+          "trace_evidence": "In Q04, the participant explicitly states that the potential loss is greater in Option A (-6000) compared to Option B (-4000) and chooses B despite equal EV. In Q10, the participant notes the risk of losing a significant amount in Option A and chooses the certain small loss B.",
+          "revision_reason": "Retained from previous candidates because it also had good validation performance (log loss 0.683, accuracy 0.75) and captures a different aspect of decision-making."
         },
         {
-          "name": "Probability of zero avoidance with risk",
+          "name": "EV and probability of zero combined",
           "features": [
             "ev_diff",
             "p_zero_diff",
-            "sd_diff"
+            "worst_diff"
           ],
-          "process_hypothesis": "When expected values are equal, the option with lower probability of zero outcome and lower risk (sd) is preferred.",
-          "trace_evidence": "In Q06, with equal EVs, the participant notes Option B has twice the chance of winning and chooses B. In Q09, with equal EVs, the participant notes Option A has a 55% chance of no loss vs 10% for B, and chooses A. In Q02, with equal EVs, the participant notes Option A has a 20% chance of no loss vs 0% for B, and chooses A. In Q05 and Q10, with equal EVs, the participant chooses the certain option (B) citing risk avoidance.",
-          "revision_reason": "Adding risk (sd_diff) to probability of zero avoidance might capture the preference for certainty in Q05 and Q10, which the probability of zero avoidance alone may not fully explain. The risk avoidance candidate had poor validation, but combining it with the better-performing probability of zero avoidance might improve overall performance."
+          "process_hypothesis": "Choices are based on a combination of expected value, probability of zero outcome, and worst outcome, with emphasis on avoiding losses and maximizing expected value.",
+          "trace_evidence": "Across multiple questions, the participant considers expected value first, then when EVs are equal or close, they focus on the probability of avoiding loss (p_zero) and the severity of worst outcome. For example, in Q09, they note the lower risk of losing money (p_zero) and choose A; in Q04, they note the smaller worst loss and choose B; in Q02, they choose A for the chance to lose nothing. Combining these features may capture the decision process more comprehensively.",
+          "revision_reason": "Combined the two best-performing candidates by adding worst_diff to the p_zero_diff and ev_diff features, hoping to capture both loss probability and severity aspects."
         }
       ]
     }
   },
   "revised_validation": [
     {
-      "name": "Probability of zero avoidance",
+      "name": "Minimize probability of loss with EV",
       "features": [
-        "ev_diff",
-        "p_zero_diff"
+        "p_zero_diff",
+        "ev_diff"
       ],
-      "process_hypothesis": "When expected values are equal, the option with lower probability of zero outcome (or higher chance of non-zero) is preferred.",
-      "trace_evidence": "In Q06, with equal EVs, the participant notes Option B has twice the chance of winning and chooses B. In Q09, with equal EVs, the participant notes Option A has a 55% chance of no loss vs 10% for B, and chooses A. In Q02, with equal EVs, the participant notes Option A has a 20% chance of no loss vs 0% for B, and chooses A.",
+      "process_hypothesis": "Choices are driven by minimizing the probability of experiencing a loss, especially when expected values are similar or equal, while also considering expected value differences.",
+      "trace_evidence": "In Q09, the participant notes that Option A has a lower risk of losing money (55% chance of no loss vs 10% for B) and chooses A despite equal EV. In Q02, the participant chooses A because of the 20% chance to lose nothing, which is a higher probability of zero than B. In Q05, the participant chooses the certain $5 (100% chance of no loss) over the risky $5000 gamble (99.9% chance of no loss) despite equal EV, showing preference for higher p_zero.",
       "validation_balanced_accuracy": 0.75,
       "validation_log_loss": 0.6630173601237348,
       "validation_errors": [
@@ -239,14 +704,33 @@
       ]
     },
     {
-      "name": "Worst outcome avoidance with probability of zero",
+      "name": "Worst outcome avoidance with EV",
+      "features": [
+        "worst_diff",
+        "ev_diff"
+      ],
+      "process_hypothesis": "Choices are influenced by the worst possible outcome, with a preference for options that have a less severe worst outcome, especially when expected values are equal.",
+      "trace_evidence": "In Q04, the participant explicitly states that the potential loss is greater in Option A (-6000) compared to Option B (-4000) and chooses B despite equal EV. In Q10, the participant notes the risk of losing a significant amount in Option A and chooses the certain small loss B.",
+      "validation_balanced_accuracy": 0.75,
+      "validation_log_loss": 0.6833840748519149,
+      "validation_errors": [
+        {
+          "question_id": "Q15",
+          "actual": "A",
+          "predicted": "B",
+          "p_B": 0.522
+        }
+      ]
+    },
+    {
+      "name": "EV and probability of zero combined",
       "features": [
         "ev_diff",
-        "worst_diff",
-        "p_zero_diff"
+        "p_zero_diff",
+        "worst_diff"
       ],
-      "process_hypothesis": "When expected values are equal, the option with better worst outcome and lower probability of zero is preferred.",
-      "trace_evidence": "In Q04, with equal EVs, the participant notes Option A has a potential loss of -6000 while Option B's worst is -4000, and chooses B. In Q10, with equal EVs, the participant notes Option A has a risk of losing $5000 while Option B is a certain small loss, and chooses B. In Q05, with equal EVs, the participant notes Option A has a chance of nothing while Option B is certain $5, and chooses B. In Q06, with equal EVs, the participant notes Option B has twice the chance of winning and chooses B. In Q",
+      "process_hypothesis": "Choices are based on a combination of expected value, probability of zero outcome, and worst outcome, with emphasis on avoiding losses and maximizing expected value.",
+      "trace_evidence": "Across multiple questions, the participant considers expected value first, then when EVs are equal or close, they focus on the probability of avoiding loss (p_zero) and the severity of worst outcome. For example, in Q09, they note the lower risk of losing money (p_zero) and choose A; in Q04, they note the smaller worst loss and choose B; in Q02, they choose A for the chance to lose nothing. Combining these features may capture the decision process more comprehensively.",
       "validation_balanced_accuracy": 0.5,
       "validation_log_loss": 0.6666139415191116,
       "validation_errors": [
@@ -263,63 +747,25 @@
           "p_B": 0.556
         }
       ]
-    },
-    {
-      "name": "Probability of zero avoidance with risk",
-      "features": [
-        "ev_diff",
-        "p_zero_diff",
-        "sd_diff"
-      ],
-      "process_hypothesis": "When expected values are equal, the option with lower probability of zero outcome and lower risk (sd) is preferred.",
-      "trace_evidence": "In Q06, with equal EVs, the participant notes Option B has twice the chance of winning and chooses B. In Q09, with equal EVs, the participant notes Option A has a 55% chance of no loss vs 10% for B, and chooses A. In Q02, with equal EVs, the participant notes Option A has a 20% chance of no loss vs 0% for B, and chooses A. In Q05 and Q10, with equal EVs, the participant chooses the certain option (B) citing risk avoidance.",
-      "validation_balanced_accuracy": 0.0,
-      "validation_log_loss": 0.9192031224808876,
-      "validation_errors": [
-        {
-          "question_id": "Q12",
-          "actual": "A",
-          "predicted": "B",
-          "p_B": 0.516
-        },
-        {
-          "question_id": "Q13",
-          "actual": "B",
-          "predicted": "A",
-          "p_B": 0.432
-        },
-        {
-          "question_id": "Q14",
-          "actual": "B",
-          "predicted": "A",
-          "p_B": 0.28
-        },
-        {
-          "question_id": "Q15",
-          "actual": "A",
-          "predicted": "B",
-          "p_B": 0.569
-        }
-      ]
     }
   ],
   "selected_model": {
-    "name": "Probability of zero avoidance",
+    "name": "Minimize probability of loss",
     "features": [
-      "ev_diff",
-      "p_zero_diff"
+      "p_zero_diff",
+      "ev_diff"
     ],
-    "process_hypothesis": "When expected values are equal, the option with lower probability of zero outcome (or higher chance of non-zero) is preferred.",
-    "trace_evidence": "In Q06, with equal EVs, the participant notes Option B has twice the chance of winning and chooses B. In Q09, with equal EVs, the participant notes Option A has a 55% chance of no loss vs 10% for B, and chooses A. In Q02, with equal EVs, the participant notes Option A has a 20% chance of no loss vs 0% for B, and chooses A."
+    "process_hypothesis": "Choices are driven by minimizing the probability of experiencing a loss, especially when expected values are similar or equal.",
+    "trace_evidence": "In Q09, the participant notes that Option A has a lower risk of losing money (55% chance of no loss vs 10% for B) and chooses A despite equal EV. In Q04, the participant chooses B because the potential loss is smaller, but also notes the probability of zero is higher in B (50% vs 75%? Actually B has 50% zero, A has 75% zero, so this contradicts; but the participant focuses on worst outcome). However, in Q02, the participant chooses A because of the 20% chance to lose nothing, which is a higher p"
   },
   "test_result": {
-    "name": "Probability of zero avoidance",
+    "name": "Minimize probability of loss",
     "features": [
-      "ev_diff",
-      "p_zero_diff"
+      "p_zero_diff",
+      "ev_diff"
     ],
-    "process_hypothesis": "When expected values are equal, the option with lower probability of zero outcome (or higher chance of non-zero) is preferred.",
-    "trace_evidence": "In Q06, with equal EVs, the participant notes Option B has twice the chance of winning and chooses B. In Q09, with equal EVs, the participant notes Option A has a 55% chance of no loss vs 10% for B, and chooses A. In Q02, with equal EVs, the participant notes Option A has a 20% chance of no loss vs 0% for B, and chooses A.",
+    "process_hypothesis": "Choices are driven by minimizing the probability of experiencing a loss, especially when expected values are similar or equal.",
+    "trace_evidence": "In Q09, the participant notes that Option A has a lower risk of losing money (55% chance of no loss vs 10% for B) and chooses A despite equal EV. In Q04, the participant chooses B because the potential loss is smaller, but also notes the probability of zero is higher in B (50% vs 75%? Actually B has 50% zero, A has 75% zero, so this contradicts; but the participant focuses on worst outcome). However, in Q02, the participant chooses A because of the 20% chance to lose nothing, which is a higher p",
     "n_parameters": 3,
     "probability_B": [
       0.5733396773822619,
@@ -345,6 +791,38 @@
     ]
   },
   "test_baselines": [
+    {
+      "name": "random 0.5",
+      "features": [],
+      "process_hypothesis": "constant probability baseline",
+      "trace_evidence": "baseline; no think-aloud used",
+      "n_parameters": 0,
+      "probability_B": [
+        0.5,
+        0.5,
+        0.5,
+        0.5
+      ],
+      "balanced_accuracy": 0.5,
+      "log_loss": 0.6931471805599453,
+      "errors": []
+    },
+    {
+      "name": "training choice-rate",
+      "features": [],
+      "process_hypothesis": "constant probability baseline",
+      "trace_evidence": "baseline; no think-aloud used",
+      "n_parameters": 0,
+      "probability_B": [
+        0.47058823529411764,
+        0.47058823529411764,
+        0.47058823529411764,
+        0.47058823529411764
+      ],
+      "balanced_accuracy": 0.5,
+      "log_loss": 0.6948802845481884,
+      "errors": []
+    },
     {
       "name": "expected-value baseline",
       "features": [
@@ -393,6 +871,31 @@
       "balanced_accuracy": 1.0,
       "log_loss": 0.24787243237776346,
       "errors": []
+    },
+    {
+      "name": "best single-feature (best_diff)",
+      "features": [
+        "best_diff"
+      ],
+      "process_hypothesis": "best outcome of B minus A",
+      "trace_evidence": "single-feature search baseline",
+      "n_parameters": 2,
+      "probability_B": [
+        0.4167473841706524,
+        0.3479212127132137,
+        0.7547495048322757,
+        0.42386298969693476
+      ],
+      "balanced_accuracy": 0.75,
+      "log_loss": 0.6069233140466594,
+      "errors": [
+        {
+          "question_id": "Q17",
+          "actual": "B",
+          "predicted": "A",
+          "p_B": 0.348
+        }
+      ]
     }
   ]
 }

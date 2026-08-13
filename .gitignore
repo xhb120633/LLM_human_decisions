@@ -33,11 +33,16 @@ notebooks/results/minimal_discovery_loop/*
 !notebooks/results/minimal_discovery_loop/minimal_discovery_run.json
 !notebooks/results/minimal_discovery_loop/validation_results.csv
 !notebooks/results/minimal_discovery_loop/test_results.csv
+!notebooks/results/clean_icl_balance_demo/
+notebooks/results/clean_icl_balance_demo/*
+!notebooks/results/clean_icl_balance_demo/summary.csv
 notebooks/*.qa.ipynb
 scripts/*
 !scripts/build_notebooks.py
+!scripts/build_participant_notebook.py
 !scripts/build_explanation_notebook.py
 !scripts/run_prefix_history_sft.py
 !scripts/evaluate_prefix_history_controls.py
 !scripts/run_fixed_eval_balanced_history_curve.py
+!scripts/run_clean_icl_balance_demo.py
 !scripts/minimal_discovery_loop.py

@@ -24,6 +24,7 @@ SENTENCE_PATH = (
 )
 OUTPUT_DIR = PROJECT / "notebooks/results/minimal_discovery_loop"
 MODEL = "deepseek-v4-pro"
+SEARCH_ITERATIONS = 3  # initial proposal + two validation-guided revisions
 PARTICIPANT_ID = 69576
 TRAIN_QUESTIONS = [f"Q{i:02d}" for i in range(1, 12)]
 VALIDATION_QUESTIONS = [f"Q{i:02d}" for i in range(12, 16)]
@@ -301,27 +302,55 @@ def validation_record(result: dict) -> dict:
     }
 
 
+def score_constant(name: str, probability_b: float, evaluation: pd.DataFrame) -> dict:
+    probability = np.repeat(float(probability_b), len(evaluation))
+    prediction = (probability >= 0.5).astype(int)
+    return {
+        "name": name,
+        "features": [],
+        "process_hypothesis": "constant probability baseline",
+        "trace_evidence": "baseline; no think-aloud used",
+        "n_parameters": 0,
+        "probability_B": probability.tolist(),
+        "balanced_accuracy": float(balanced_accuracy_score(evaluation["choice"], prediction)),
+        "log_loss": float(log_loss(evaluation["choice"], probability, labels=[0, 1])),
+        "errors": [],
+    }
+
+
 def run_loop() -> dict:
     trials = load_participant_trials()
     splits = split_trials(trials)
 
     proposal_response = call_deepseek(proposal_messages(splits["train"]))
-    initial = validate_candidates(proposal_response["content"], expected_count=4)
-    initial_validation = [
-        validation_record(fit_and_score(spec, splits["train"], splits["validation"]))
-        for spec in initial
-    ]
+    candidates = validate_candidates(proposal_response["content"], expected_count=4)
+    search_iterations = []
+    response = proposal_response
+    for iteration in range(SEARCH_ITERATIONS):
+        validation = [
+            validation_record(fit_and_score(spec, splits["train"], splits["validation"]))
+            for spec in candidates
+        ]
+        search_iterations.append(
+            {
+                "iteration": iteration,
+                "stage": "initial proposal" if iteration == 0 else f"revision {iteration}",
+                "response": response,
+                "candidates": candidates,
+                "validation": validation,
+            }
+        )
+        if iteration < SEARCH_ITERATIONS - 1:
+            response = call_deepseek(
+                revision_messages(splits["train"], candidates, validation)
+            )
+            candidates = validate_candidates(response["content"], expected_count=3)
 
-    revision_response = call_deepseek(
-        revision_messages(splits["train"], initial, initial_validation)
-    )
-    revised = validate_candidates(revision_response["content"], expected_count=3)
-    revised_validation = [
-        validation_record(fit_and_score(spec, splits["train"], splits["validation"]))
-        for spec in revised
+    all_validation = [
+        row
+        for iteration in search_iterations
+        for row in iteration["validation"]
     ]
-
-    all_validation = initial_validation + revised_validation
     winner = min(all_validation, key=lambda row: row["validation_log_loss"])
     final_spec = {
         key: winner[key]
@@ -332,7 +361,14 @@ def run_loop() -> dict:
     )
     final_test = fit_and_score(final_spec, train_plus_validation, splits["test"])
 
-    baselines = []
+    baselines = [
+        score_constant("random 0.5", 0.5, splits["test"]),
+        score_constant(
+            "training choice-rate",
+            (train_plus_validation["choice"].sum() + 1) / (len(train_plus_validation) + 2),
+            splits["test"],
+        ),
+    ]
     for spec in [
         {
             "name": "expected-value baseline",
@@ -349,18 +385,35 @@ def run_loop() -> dict:
     ]:
         baselines.append(fit_and_score(spec, train_plus_validation, splits["test"]))
 
+    single_feature_validation = []
+    for feature in FEATURE_LIBRARY:
+        spec = {
+            "name": f"single feature: {feature}",
+            "features": [feature],
+            "process_hypothesis": FEATURE_LIBRARY[feature],
+            "trace_evidence": "single-feature search baseline",
+        }
+        result = fit_and_score(spec, splits["train"], splits["validation"])
+        single_feature_validation.append((result["log_loss"], spec))
+    _, best_single_spec = min(single_feature_validation, key=lambda item: item[0])
+    best_single_spec = dict(best_single_spec)
+    best_single_spec["name"] = f"best single-feature ({best_single_spec['features'][0]})"
+    baselines.append(fit_and_score(best_single_spec, train_plus_validation, splits["test"]))
+
     return {
         "design": {
             "participant_id": PARTICIPANT_ID,
             "train_questions": TRAIN_QUESTIONS,
             "validation_questions": VALIDATION_QUESTIONS,
             "test_questions": TEST_QUESTIONS,
+            "search_iterations": SEARCH_ITERATIONS,
             "test_access": "opened once after candidate selection",
         },
         "proposal": proposal_response,
-        "initial_validation": initial_validation,
-        "revision": revision_response,
-        "revised_validation": revised_validation,
+        "search_iterations": search_iterations,
+        "initial_validation": search_iterations[0]["validation"],
+        "revision": search_iterations[1]["response"],
+        "revised_validation": search_iterations[1]["validation"],
         "selected_model": final_spec,
         "test_result": final_test,
         "test_baselines": baselines,
@@ -372,7 +425,11 @@ def save_outputs(result: dict) -> None:
     (OUTPUT_DIR / "minimal_discovery_run.json").write_text(
         json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8"
     )
-    validation_rows = result["initial_validation"] + result["revised_validation"]
+    validation_rows = [
+        {"iteration": iteration["iteration"], "stage": iteration["stage"]} | row
+        for iteration in result["search_iterations"]
+        for row in iteration["validation"]
+    ]
     pd.DataFrame(validation_rows).drop(
         columns=["validation_errors"], errors="ignore"
     ).to_csv(OUTPUT_DIR / "validation_results.csv", index=False)

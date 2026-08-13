@@ -619,14 +619,20 @@ def build_notebook():
         ),
         md(
             r'''
-            ### One loop, with the test set kept closed
+            ### Three search iterations, with the test set kept closed
 
-            The live path makes two API calls:
+            The live path makes three API calls:
 
             1. propose four candidate models from the training evidence;
-            2. show validation performance and errors, then request three revisions.
+            2. show validation performance and errors, then request three revisions;
+            3. repeat the validation-guided revision once more to test whether search is
+               still improving or has plateaued.
 
-            Python validates every JSON specification, fits its coefficients on training behavior, and ranks it using validation log loss. Only after selection do we refit on training + validation and open the four test questions once.
+            Python validates every JSON specification, fits its coefficients on training
+            behavior, and ranks it using validation log loss. Only after all three search
+            iterations do we select one candidate, refit it on training + validation, and
+            open the four test questions once. More rounds are possible, but every extra
+            round consumes validation information and can overfit the validation set.
 
             Set `RUN_DEEPSEEK_DISCOVERY = True` to rerun the calls. The default uses the cached teaching run, so every student can inspect the complete loop without an API key.
             '''
@@ -646,24 +652,28 @@ def build_notebook():
             else:
                 discovery_run = json.loads(DISCOVERY_CACHE.read_text(encoding="utf-8"))
 
-            print("Proposal model:", discovery_run["proposal"]["model"])
-            print("Revision model:", discovery_run["revision"]["model"])
+            print("Search iterations:", len(discovery_run["search_iterations"]))
+            for iteration in discovery_run["search_iterations"]:
+                print(iteration["stage"], "->", iteration["response"]["model"])
             print("Test access:", discovery_run["design"]["test_access"])
             '''
         ),
         code(
             r'''
-            initial_validation = pd.DataFrame(discovery_run["initial_validation"])
-            revised_validation = pd.DataFrame(discovery_run["revised_validation"])
+            validation_frames = []
+            for iteration in discovery_run["search_iterations"]:
+                validation_frames.append(
+                    pd.DataFrame(iteration["validation"]).assign(
+                        iteration=iteration["iteration"],
+                        stage=iteration["stage"],
+                    )
+                )
 
-            validation_view = pd.concat([
-                initial_validation.assign(iteration="initial proposal"),
-                revised_validation.assign(iteration="revision"),
-            ], ignore_index=True)
+            validation_view = pd.concat(validation_frames, ignore_index=True)
             validation_view["features"] = validation_view["features"].map(", ".join)
             validation_view = validation_view[
-                ["iteration", "name", "features", "validation_balanced_accuracy", "validation_log_loss"]
-            ].sort_values("validation_log_loss")
+                ["iteration", "stage", "name", "features", "validation_balanced_accuracy", "validation_log_loss"]
+            ].sort_values(["iteration", "validation_log_loss"])
             display(validation_view.round(3))
 
             print("Selected before opening test:")
@@ -687,7 +697,8 @@ def build_notebook():
 
             print(
                 "Teaching result: the DeepSeek-selected candidate wins validation but does not "
-                "beat the pre-registered baselines on four test trials. This is a runnable search "
+                "beat the comparison baselines on four test trials. Two revision rounds also "
+                "plateau at the same validation loss. This is a runnable search "
                 "loop, not evidence of mechanism recovery."
             )
             '''

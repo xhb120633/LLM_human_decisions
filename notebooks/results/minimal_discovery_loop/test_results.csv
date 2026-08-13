@@ -1,4 +1,7 @@
 model,features,n_parameters,balanced_accuracy,log_loss
-Probability of zero avoidance,"ev_diff, p_zero_diff",3,0.5,0.5344769923693642
+Minimize probability of loss,"p_zero_diff, ev_diff",3,0.5,0.5344769923693642
+random 0.5,,0,0.5,0.6931471805599453
+training choice-rate,,0,0.5,0.6948802845481884
 expected-value baseline,ev_diff,2,0.75,0.4533260621516836
 all-feature baseline,"ev_diff, sd_diff, worst_diff, best_diff, p_best_diff, p_zero_diff, certain_diff",8,1.0,0.24787243237776346
+best single-feature (best_diff),best_diff,2,0.75,0.6069233140466594
