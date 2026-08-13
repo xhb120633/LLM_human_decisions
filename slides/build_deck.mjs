@@ -1711,6 +1711,12 @@ twoColSlide(p, {
   notes(s, "All three readouts hold out entire questions. Explicit preference claims were removed before annotation. This is predictive evidence, not causal recovery.");
 }
 
+breakSlide(
+  p,
+  "After the break: search for executable models and design tests that distinguish them.",
+  3,
+);
+
 sectionSlide(
   p,
   5,
@@ -1822,8 +1828,6 @@ flowSlide(p, {
   stepBodySize: 18,
   takeaway: "This notebook is one route: discovery can also begin from behavior, prior theory, or interventions without annotation.",
 });
-
-breakSlide(p, "After the break: return to the opening choice with stronger scientific claims.", 4);
 
 // 53 Final synthesis
 {
