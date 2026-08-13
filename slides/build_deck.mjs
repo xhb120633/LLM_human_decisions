@@ -1456,25 +1456,42 @@ for (const revealStage of [2, 4]) {
   notes(s, "Reveal the argument in order: observations are available, a measurement model supplies the inferential bridge, and the result remains model-dependent. The final build specializes the argument to language and Qwen.\n[Sources]\n- Local tutorial framework.\n- docs/qwen35_sentence_states.md.");
 }
 
-// Representation 3b: operationalize the measurement input
+// Representation 3b: connect the masked-input task to prediction and state extraction
 {
   const s = newSlide(p);
-  header(s, "Operationalize the inference: construct the model input", "Representation / measurement input", 36, 2, "The same record is transformed without revealing the persona or original choice");
-  text(s, "QWEN INPUT AT THE CURRENT SENTENCE", 84, 204, 620, 26, { size: 14, bold: true, color: C.muted });
-  shape(s, "rect", 84, 244, 690, 300, C.white, C.line, 1);
-  text(s, "INSTRUCTION", 108, 264, 140, 22, { size: 14, bold: true, color: C.blue });
-  text(s, "Infer which option the reasoning supports.", 108, 292, 620, 28, { size: 19, color: C.body });
-  text(s, "QUESTION", 108, 334, 110, 22, { size: 14, bold: true, color: C.blue });
-  text(s, "A: 25% chance of $1,000; otherwise $0    B: $240 for sure", 108, 362, 620, 30, { size: 19, color: C.ink });
-  text(s, "CUMULATIVE MASKED REASONING", 108, 408, 280, 22, { size: 14, bold: true, color: C.purple });
-  text(s, "I will compare expected values. A gives $250; B gives $240.\nA has the higher expected value. I choose Option X.", 108, 438, 620, 74, { size: 19, color: C.body, lineSpacing: 1.15 });
+  header(s, "Use masked reasoning to recover choice and expose hidden states", "Representation / measurement task", 36, 2, "One input supports two behaviorally anchored readouts");
 
-  text(s, "Included", 824, 224, 320, 32, { size: 25, bold: true, color: C.blue });
-  bullets(s, ["choice-recovery instruction", "risky-choice question", "reasoning observed up to sentence t"], 840, 270, 340, 126, { size: 21, lineSpacing: 1.15 });
-  text(s, "Withheld", 824, 418, 320, 32, { size: 25, bold: true, color: C.coral });
-  bullets(s, ["persona label", "original A/B conclusion", "GPT-4 internal activations"], 840, 464, 340, 102, { size: 21, lineSpacing: 1.15 });
-  academicPoint(s, "h(t) is Qwen's state conditioned on the observed text so far - not GPT-4's or a human's latent state.", 582, 19);
-  notes(s, "Continue the exact record from the previous slide. The transformation is explicit: retain the task, question, and cumulative reasoning; hide the persona and replace the final A/B claim with Option X. The resulting state belongs to Qwen and is a model-dependent measurement of information expressed in the observed reasoning.\n[Sources]\n- scripts/extract_qwen35_sentence_states.py.\n- notebooks/results/representation/text2decision_multiscale_log_trajectories/sentence_decision_states.csv, trial_row 0.");
+  // Connectors first so they remain behind the labeled nodes.
+  arrow(s, 594, 326, 54, 78);
+  arrow(s, 846, 252, 54, 70);
+  arrow(s, 846, 426, 54, 70);
+
+  text(s, "MODEL INPUT", 84, 198, 300, 24, { size: 14, bold: true, color: C.muted });
+  shape(s, "rect", 84, 230, 494, 286, C.white, C.line, 1);
+  text(s, "Instruction", 108, 252, 130, 22, { size: 14, bold: true, color: C.blue });
+  text(s, "Infer which option the reasoning supports.", 108, 280, 430, 26, { size: 18, color: C.body });
+  text(s, "Question", 108, 326, 110, 22, { size: 14, bold: true, color: C.blue });
+  text(s, "A: 25% of $1,000; otherwise $0\nB: $240 for sure", 108, 354, 430, 54, { size: 18, color: C.ink, lineSpacing: 1.15 });
+  text(s, "Cumulative reasoning", 108, 426, 210, 22, { size: 14, bold: true, color: C.purple });
+  text(s, "A gives $250; B gives $240.\nA has the higher value. I choose Option X.", 108, 454, 430, 52, { size: 17, color: C.body, lineSpacing: 1.12 });
+
+  shape(s, "rect", 658, 298, 178, 118, C.faint, C.blue, 1.25);
+  text(s, "Frozen Qwen", 674, 326, 146, 30, { size: 23, bold: true, color: C.blue, align: "center" });
+  text(s, "one forward pass", 674, 366, 146, 22, { size: 15, color: C.muted, align: "center" });
+
+  shape(s, "rect", 914, 214, 266, 146, C.white, C.line, 1);
+  text(s, "Direct choice readout", 934, 236, 226, 28, { size: 22, bold: true, color: C.blue });
+  text(s, "output P(A), P(B)", 934, 280, 226, 26, { size: 20, bold: true, color: C.ink, typeface: MONO });
+  text(s, "evaluate held-out choice\nwith balanced accuracy", 934, 316, 226, 40, { size: 16, color: C.body, lineSpacing: 1.12 });
+
+  shape(s, "rect", 914, 394, 266, 146, C.white, C.line, 1);
+  text(s, "Representation readout", 934, 416, 226, 28, { size: 22, bold: true, color: C.purple });
+  text(s, "save h(l, t)", 934, 460, 226, 26, { size: 20, bold: true, color: C.ink, typeface: MONO });
+  text(s, "probe choice information\nand analyze geometry", 934, 496, 226, 40, { size: 16, color: C.body, lineSpacing: 1.12 });
+
+  text(s, "Withheld: persona label and original A/B conclusion", 84, 548, 1096, 24, { size: 17, color: C.coral, align: "center" });
+  academicPoint(s, "Choice recovery tests whether information is present; hidden-state analysis asks where and how it is represented.", 582, 18.5);
+  notes(s, "Make the relationship explicit. The same masked input supports two linked analyses. First, Qwen's output probabilities provide a direct A/B prediction that is evaluated on held-out questions. Second, the forward pass exposes layerwise hidden states h(l,t); a separate probe tests whether the original choice is linearly readable from those states. The next slide explains state extraction, the following slide defines the probe, and the result slide reports balanced accuracy. Neither readout establishes that Qwen shares GPT-4's or a human's latent mechanism.\n[Sources]\n- scripts/extract_qwen35_sentence_states.py.\n- notebooks/results/representation/text2decision_multiscale_log_trajectories/sentence_decision_states.csv, trial_row 0.");
 }
 // Representation 3c: exact state extraction
 // Progressive reveal: cumulative token stream, then sentence-boundary sampling.
