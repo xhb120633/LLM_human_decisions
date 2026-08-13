@@ -985,8 +985,8 @@ notebookTransition(p, {
   kicker: "HANDS-ON / NOTEBOOK 1B",
   title: "Turn one prediction into a learning curve",
   start: "Section 5: Move from one example to a learning curve",
-  steps: ["Increase the number of same-person history trials", "Keep the failed pilot and diagnose its imbalance", "Balance histories and targets, then extend k", "Compare the three participant-level curves"],
-  stop: "After: The average hides heterogeneous trajectories",
+  steps: ["Increase the number of same-person history trials", "Keep the failed pilot and diagnose its imbalance", "Lock the eight targets; balance history only", "Compare the two participant-level failures"],
+  stop: "After: the fixed-target failure appears for both participants",
   returnTo: "A first attempt produces a suspicious learning curve"
 });
 
@@ -1020,29 +1020,29 @@ notebookTransition(p, {
 // 24 Aggregate balanced learning curve
 {
   const s = newSlide(p);
-  header(s, "A new balanced evaluation set reveals an early average gain", "Hands-on / balanced learning curve", 24, 1,
-    "Different evaluation set from the failed pilot / 3 participants / 24 targets");
+  header(s, "Balancing history alone does not repair the fixed-target failure", "Hands-on / controlled repair", 24, 1,
+    "Same P025/P026 targets as the failed pilot / 8 choices: 1 A, 7 B");
   text(s, "Mean held-out log loss", 84, 214, 360, 34, { size: TYPE.chartTitle, bold: true, color: C.blue });
   text(s, "Error bars: standard deviation across three balanced history selections", 84, 248, 650, 24, {
     size: TYPE.chartSubtitle,
     color: C.muted,
   });
-  text(s, "NEW EVALUATION SET", 786, 214, 374, 20, {
+  text(s, "EVALUATION LOCKED", 786, 214, 374, 20, {
     size: 14,
     bold: true,
-    color: C.coral,
+    color: C.blue,
     align: "right",
   });
-  text(s, "24 targets: 12 A / 12 B\nZero-shot recomputed on these targets", 786, 238, 374, 42, {
+  text(s, "Same 8 targets; same k=0 responses\nOnly history sampling changes", 786, 238, 374, 42, {
     size: 16,
     color: C.body,
     align: "right",
     lineSpacing: 1.08,
   });
 
-  const labels = ["0", "2", "4", "6", "8", "10", "12", "14", "16", "18"];
-  const meanLoss = [0.878, 0.794, 0.816, 0.818, 0.873, 0.944, 0.911, 0.959, 0.861, 0.916];
-  const sdLoss = [0.000, 0.047, 0.145, 0.130, 0.138, 0.076, 0.112, 0.223, 0.119, 0.033];
+  const labels = ["0", "2", "4", "6", "8", "10", "12"];
+  const meanLoss = [0.594, 3.448, 3.203, 3.397, 3.399, 3.238, 3.139];
+  const sdLoss = [0.000, 0.343, 0.449, 0.364, 0.107, 0.670, 0.358];
   await addStaticLineChart(s, {
     x: 82, y: 278, w: 1078, h: 278,
     categories: labels,
@@ -1050,24 +1050,24 @@ notebookTransition(p, {
       { name: "Balanced-history mean", values: meanLoss, errors: sdLoss, color: C.blue, width: 3, markerSize: 4 },
       { name: "Random choice", values: labels.map(() => Math.log(2)), color: C.mutedLight, width: 1.75, markers: false, dash: "6 5" },
     ],
-    bands: [{ fromIndex: 1, toIndex: 3, color: C.blueLight, opacity: 0.24 }],
-    yMin: 0.5, yMax: 1.2, yStep: 0.2,
+    yMin: 0, yMax: 4.2, yStep: 1.0,
     showLegend: true,
-    alt: "Aggregate held-out log loss after balancing histories and targets, with standard-deviation error bars and random-choice reference",
+    alt: "Mean log loss on the same eight targets after balancing only the history examples, with standard-deviation error bars and random-choice reference",
   });
   text(s, "Number of balanced earlier trials in context", 382, 552, 500, 24, {
     size: TYPE.chartSubtitle,
     color: C.body,
     align: "center",
   });
-  academicPoint(s, "Within this new target set, 2-6 examples help on average; longer histories do not yield a stable additional gain.", 590, 20);
+  academicPoint(s, "With targets fixed, balanced history shifts the model toward A and creates confident errors on the 7B / 1A target slice.", 590, 20);
   notes(s, [
-    "This is the missing aggregate result after correcting the label imbalance in the failed pilot.",
-    "Zero-shot mean log loss is 0.878. Balanced histories reduce it to 0.794-0.818 at k=2-6; later points do not show monotonic improvement.",
+    "This controlled repair keeps P025/P026 target trials 21-24 fixed and reuses the exact cached k=0 responses from the failed pilot.",
+    "Only the history selection changes: every non-zero context has k/2 A and k/2 B examples, sampled with three seeds and shown chronologically.",
+    "Zero-shot mean log loss remains 0.594. Balanced histories produce mean log loss between 3.139 and 3.448 and accuracy 0.125.",
     "The error bars are standard deviations across three balanced history selections, not participant-level confidence intervals.",
     "The next slide decomposes this average by participant.",
     "[Sources]",
-    "- notebooks/results/expanded_balanced_summary.csv",
+    "- notebooks/results/fixed_eval_balanced_history/fixed_eval_balanced_summary.csv",
     "[/Sources]",
   ]);
 }
@@ -1075,25 +1075,20 @@ notebookTransition(p, {
 // 25 Participant-level balanced learning curves
 {
   const s = newSlide(p);
-  header(s, "The same average hides participant-level differences", "Hands-on / participant-level learning curves", 25, 1,
-    "3 participants / 8 fixed targets each / 3 balanced histories at each non-zero history length");
+  header(s, "The fixed-target failure appears for both participants", "Hands-on / participant-level diagnosis", 25, 1,
+    "P025 and P026 / same four targets each / 3 balanced histories per non-zero k");
 
-  const labels = ["0", "2", "4", "6", "8", "10", "12", "14", "16", "18"];
+  const labels = ["0", "2", "4", "6", "8", "10", "12"];
   const series = [
     {
-      name: "P026", color: C.blue,
-      accuracy: [0.500, 0.542, 0.667, 0.542, 0.583, 0.625, 0.625, 0.708, 0.667, 0.792],
-      loss: [1.027, 0.718, 0.681, 0.720, 0.766, 0.744, 0.695, 0.675, 0.620, 0.638],
+      name: "P025", color: C.blue,
+      accuracy: [1.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000],
+      loss: [0.294, 4.225, 4.090, 3.969, 3.902, 4.011, 4.436],
     },
     {
-      name: "P028", color: C.coral,
-      accuracy: [0.500, 0.417, 0.500, 0.333, 0.375, 0.500, 0.458, 0.417, 0.458, 0.500],
-      loss: [0.815, 0.946, 1.009, 1.114, 1.208, 1.481, 1.345, 1.524, 1.277, 1.478],
-    },
-    {
-      name: "P031", color: C.green,
-      accuracy: [0.500, 0.667, 0.583, 0.708, 0.625, 0.667, 0.625, 0.625, 0.500, 0.542],
-      loss: [0.793, 0.719, 0.757, 0.620, 0.644, 0.607, 0.693, 0.677, 0.688, 0.633],
+      name: "P026", color: C.coral,
+      accuracy: [0.750, 0.250, 0.250, 0.250, 0.250, 0.250, 0.250],
+      loss: [0.893, 2.671, 2.316, 2.826, 2.897, 2.465, 1.842],
     },
   ];
 
@@ -1117,7 +1112,7 @@ notebookTransition(p, {
       categories: labels,
       series: chartSeries,
       yMin, yMax, yStep: majorUnit,
-      xLabelIndices: [0, 3, 6, 9],
+      xLabelIndices: [0, 2, 4, 6],
       alt: `Participant-level ${key} learning curves with reference line`,
     });
   }
@@ -1127,21 +1122,21 @@ notebookTransition(p, {
   text(s, "Log loss", 690, 208, 510, 30, { size: TYPE.chartTitle, bold: true, color: C.blue });
   text(s, "Lower is better", 690, 240, 510, 22, { size: TYPE.chartSubtitle, color: C.muted });
 
-  await addLearningChart(72, "accuracy", 0.2, 0.9, 0.2, 0.5);
-  await addLearningChart(690, "loss", 0.5, 1.6, 0.3, Math.log(2));
+  await addLearningChart(72, "accuracy", 0, 1.0, 0.25, 0.5);
+  await addLearningChart(690, "loss", 0, 5.0, 1.0, Math.log(2));
 
   text(s, "Number of balanced earlier trials in context", 158, 552, 350, 22, { size: TYPE.chartSubtitle, color: C.body, align: "center" });
   text(s, "Number of balanced earlier trials in context", 776, 552, 350, 22, { size: TYPE.chartSubtitle, color: C.body, align: "center" });
 
-  const legendX = 810;
+  const legendX = 868;
   series.forEach((entry, i) => {
     const x = legendX + i * 116;
     shape(s, "rect", x, 212, 28, 3, entry.color);
     text(s, entry.name, x + 36, 202, 68, 22, { size: TYPE.chartLegend, bold: true, color: entry.color });
   });
 
-  academicPoint(s, "Adding personal history helps P026, hurts P028, and peaks at an intermediate history length for P031.", 592, 20);
-  notes(s, "The aggregate curve obscures heterogeneous trajectories. Each participant has eight fixed balanced targets. For non-zero history lengths, each point pools those targets across three independently selected balanced histories. Both panels are generated directly from the recorded data series.");
+  academicPoint(s, "Balanced history induces an A shift: P025 misses all four B targets; P026 retains only its single A target.", 592, 20);
+  notes(s, "P025 has four B targets; P026 has three B targets and one A target. After balanced history is added, the model predicts A strongly for both people. The participant plots use the same fixed targets and average three balanced history selections at each non-zero k.\n[Sources]\n- notebooks/results/fixed_eval_balanced_history/fixed_eval_balanced_by_participant.csv\n[/Sources]");
 }
 predictionStep(p, 3, "Test whether training participants reveal task-level regularities", "Update parameters on labeled risky choices, then test whether the learned mapping generalizes to held-out people.");
 
