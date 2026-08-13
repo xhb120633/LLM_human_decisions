@@ -18,7 +18,8 @@ OUTPUT_DIR = PROJECT / "notebooks/results/clean_icl_balance_demo"
 MODEL = "deepseek-v4-pro"
 PARTICIPANTS = ["P025", "P026"]
 TARGET_TRIALS = list(range(21, 41))
-HISTORY_K = 8
+HISTORY_LENGTHS = [0, 2, 4, 6, 8, 10, 12]
+SUMMARY_K = 8
 SEED = 20260812
 
 
@@ -118,13 +119,22 @@ def sigmoid(value: float) -> float:
     return 1 / (1 + math.exp(-value))
 
 
-def balanced_history(history: pd.DataFrame, participant: str) -> pd.DataFrame:
+def balanced_order(history: pd.DataFrame, participant: str) -> dict[str, list[int]]:
     rng = np.random.default_rng(SEED + int(participant[1:]))
-    selected = []
+    order = {}
     for label in ["A", "B"]:
         pool = history[history["choice"] == label]
-        chosen = rng.choice(pool.index.to_numpy(), size=HISTORY_K // 2, replace=False)
-        selected.extend(chosen.tolist())
+        indices = pool.index.to_numpy().copy()
+        rng.shuffle(indices)
+        order[label] = indices.tolist()
+    return order
+
+
+def balanced_history(
+    history: pd.DataFrame, order: dict[str, list[int]], k: int
+) -> pd.DataFrame:
+    per_label = k // 2
+    selected = order["A"][:per_label] + order["B"][:per_label]
     return history.loc[selected].sort_values("trial_index")
 
 
@@ -161,12 +171,18 @@ def main() -> None:
     for participant in PARTICIPANTS:
         person = data[data["participant_id"] == participant].sort_values("trial_index")
         eligible = person[person["trial_index"] <= 20]
-        histories = {
-            "zero_shot": eligible.iloc[0:0],
-            "unbalanced_history": eligible.head(HISTORY_K),
-            "balanced_history": balanced_history(eligible, participant),
-        }
-        for condition, history in histories.items():
+        order = balanced_order(eligible, participant)
+        histories = [("zero_shot", "current", 0, eligible.iloc[0:0])]
+        for k in HISTORY_LENGTHS[1:]:
+            natural_name = "unbalanced_history" if k == SUMMARY_K else f"natural_k{k}"
+            balanced_name = "balanced_history" if k == SUMMARY_K else f"balanced_k{k}"
+            histories.extend(
+                [
+                    (natural_name, "natural", k, eligible.head(k)),
+                    (balanced_name, "balanced", k, balanced_history(eligible, order, k)),
+                ]
+            )
+        for condition, history_type, history_k, history in histories:
             for trial in TARGET_TRIALS:
                 target = person[person["trial_index"] == trial].iloc[0]
                 probabilities = {}
@@ -200,6 +216,8 @@ def main() -> None:
                         "target_trial": trial,
                         "actual_choice": target["choice"],
                         "condition": condition,
+                        "history_type": history_type,
+                        "history_k": history_k,
                         "history_A": int((history["choice"] == "A").sum()),
                         "history_B": int((history["choice"] == "B").sum()),
                         "p_B_original": p_b_original,
@@ -209,17 +227,50 @@ def main() -> None:
                 )
 
     predictions = pd.DataFrame(rows)
+    summary_conditions = ["zero_shot", "unbalanced_history", "balanced_history"]
     summary = []
-    for condition, frame in predictions.groupby("condition", sort=False):
+    for condition in summary_conditions:
+        frame = predictions[predictions["condition"] == condition]
         row = {"condition": condition}
         row.update(metrics(frame, "p_B_counterbalanced"))
         row["history_A"] = int(frame["history_A"].iloc[0]) if condition != "zero_shot" else 0
         row["history_B"] = int(frame["history_B"].iloc[0]) if condition != "zero_shot" else 0
         summary.append(row)
     summary = pd.DataFrame(summary)
+
+    curve_rows = []
+    for (history_type, history_k), frame in predictions.groupby(
+        ["history_type", "history_k"], sort=False
+    ):
+        row = {"history_type": history_type, "history_k": history_k}
+        row.update(metrics(frame, "p_B_counterbalanced"))
+        curve_rows.append(row)
+    curve_summary = pd.DataFrame(curve_rows).sort_values(["history_type", "history_k"])
+
+    participant_rows = []
+    for (participant, history_type, history_k), frame in predictions.groupby(
+        ["participant_id", "history_type", "history_k"], sort=False
+    ):
+        row = {
+            "participant_id": participant,
+            "history_type": history_type,
+            "history_k": history_k,
+        }
+        row.update(metrics(frame, "p_B_counterbalanced"))
+        row["history_A"] = int(frame["history_A"].iloc[0])
+        row["history_B"] = int(frame["history_B"].iloc[0])
+        participant_rows.append(row)
+    by_participant = pd.DataFrame(participant_rows).sort_values(
+        ["participant_id", "history_type", "history_k"]
+    )
+
     predictions.to_csv(OUTPUT_DIR / "predictions_private.csv", index=False)
     summary.to_csv(OUTPUT_DIR / "summary.csv", index=False)
+    curve_summary.to_csv(OUTPUT_DIR / "curve_summary.csv", index=False)
+    by_participant.to_csv(OUTPUT_DIR / "curve_by_participant.csv", index=False)
     print(summary.to_string(index=False))
+    print("\nCurve by participant:\n")
+    print(by_participant.to_string(index=False))
 
 
 if __name__ == "__main__":

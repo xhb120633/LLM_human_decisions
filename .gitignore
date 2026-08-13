@@ -36,6 +36,8 @@ notebooks/results/minimal_discovery_loop/*
 !notebooks/results/clean_icl_balance_demo/
 notebooks/results/clean_icl_balance_demo/*
 !notebooks/results/clean_icl_balance_demo/summary.csv
+!notebooks/results/clean_icl_balance_demo/curve_summary.csv
+!notebooks/results/clean_icl_balance_demo/curve_by_participant.csv
 notebooks/*.qa.ipynb
 scripts/*
 !scripts/build_notebooks.py

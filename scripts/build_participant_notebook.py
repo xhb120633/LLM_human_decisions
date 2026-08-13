@@ -502,12 +502,57 @@ def build():
         ),
         md(
             """
+            ### The learning curve is different for each participant
+
+            A single `k=8` comparison hides the important part of the result. We now use
+            the **same 20 future targets per participant** at every history length and plot
+            P025 and P026 separately. Both panels share the identical `k=0` predictions.
+            """
+        ),
+        code(
+            """
+            CURVE_PATH = find_file("results/clean_icl_balance_demo/curve_by_participant.csv")
+            participant_curve = pd.read_csv(CURVE_PATH)
+
+            current = participant_curve[participant_curve["history_type"] == "current"]
+            colors = {"P025": "#2563eb", "P026": "#d97706"}
+            fig, axes = plt.subplots(1, 2, figsize=(12.2, 4.3), sharey=True)
+
+            for ax, history_type, title in zip(
+                axes,
+                ["natural", "balanced"],
+                ["Natural history order", "A/B-balanced history"],
+            ):
+                for participant in ["P025", "P026"]:
+                    start = current[current["participant_id"] == participant]
+                    curve = participant_curve[
+                        (participant_curve["participant_id"] == participant)
+                        & (participant_curve["history_type"] == history_type)
+                    ]
+                    plot_frame = pd.concat([start, curve]).sort_values("history_k")
+                    ax.plot(
+                        plot_frame["history_k"], plot_frame["log_loss"],
+                        marker="o", linewidth=2.2, label=participant,
+                        color=colors[participant],
+                    )
+                ax.axhline(math.log(2), color="gray", linestyle="--", linewidth=1.2)
+                ax.set(title=title, xlabel="Earlier trials in context (k)", xticks=HISTORY_LENGTHS)
+
+            axes[0].set_ylabel("Held-out log loss (lower is better)")
+            axes[1].legend(title="Participant", frameon=False)
+            fig.suptitle("Same targets and same zero-history starting point in both panels", y=1.03)
+            fig.tight_layout()
+            plt.show()
+            """
+        ),
+        md(
+            """
             ### Interpretation
 
-            The unbalanced history shifts mean `P(B)` down to `0.427` and increases log
-            loss to `0.700`. Balancing the same number of history examples moves mean
-            `P(B)` back toward the observed target rate and reduces log loss to `0.659`,
-            slightly below the current-trial baseline of `0.667`.
+            The unbalanced history shifts mean `P(B)` down to `0.430` and increases log
+            loss to `0.715`. Balancing the same number of history examples moves mean
+            `P(B)` back toward the observed target rate and reduces log loss to `0.649`,
+            below the current-trial baseline of `0.675`.
 
             Accuracy does not increase in parallel (`0.650` to `0.600`), because several
             probabilities move without crossing the 0.5 decision boundary. That is why we
@@ -522,6 +567,12 @@ def build():
 
             This experiment removes the obvious balance confound, but it does not distinguish
             between those explanations.
+
+            The participant curves make the uncertainty concrete. With natural history,
+            neither participant improves reliably as `k` grows. After balancing, P025
+            improves most around `k=6`, whereas P026 remains noisy and improves only at
+            `k=12`. Balance therefore removes a confound; it does not guarantee a monotonic
+            learning curve.
 
             > Balance the demonstrations before asking whether the model learned the participant.
             """

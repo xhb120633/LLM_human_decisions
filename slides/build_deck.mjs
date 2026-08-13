@@ -1212,6 +1212,64 @@ notebookTransition(p, {
 // Clean ICL result
 {
   const s = newSlide(p);
+  header(s, "Balance reveals participant-specific learning curves", "Prediction / matched history curves", 24, 1,
+    "Same 20 future targets per participant / identical k=0 predictions");
+
+  const labels = ["0", "2", "4", "6", "8", "10", "12"];
+  const reference = labels.map(() => Math.log(2));
+  const participants = [
+    {
+      name: "P025", color: C.blue,
+      natural: [0.692, 0.703, 0.666, 0.714, 0.669, 0.742, 0.713],
+      balanced: [0.692, 0.683, 0.604, 0.555, 0.591, 0.698, 0.718],
+    },
+    {
+      name: "P026", color: C.orange,
+      natural: [0.657, 0.730, 0.654, 0.672, 0.761, 0.772, 0.751],
+      balanced: [0.657, 0.787, 0.708, 0.805, 0.707, 0.765, 0.630],
+    },
+  ];
+
+  text(s, "Natural history order", 72, 202, 510, 30, { size: TYPE.chartTitle, bold: true, color: C.blue });
+  text(s, "Labels become increasingly A-heavy", 72, 234, 510, 22, { size: TYPE.chartSubtitle, color: C.muted });
+  text(s, "A/B-balanced history", 690, 202, 510, 30, { size: TYPE.chartTitle, bold: true, color: C.teal });
+  text(s, "Equal A and B demonstrations at every k", 690, 234, 510, 22, { size: TYPE.chartSubtitle, color: C.muted });
+
+  for (const [x, key] of [[72, "natural"], [690, "balanced"]]) {
+    await addStaticLineChart(s, {
+      x, y: 258, w: 520, h: 288,
+      categories: labels,
+      series: [
+        ...participants.map((entry) => ({
+          name: entry.name,
+          values: entry[key],
+          color: entry.color,
+          width: 2.75,
+          markerSize: 4,
+        })),
+        { name: "Random", values: reference, color: C.mutedLight, width: 1.5, markers: false, dash: "6 5" },
+      ],
+      yMin: 0.5, yMax: 0.85, yStep: 0.1,
+      xLabelIndices: [0, 1, 2, 3, 4, 5, 6],
+      alt: `${key} participant-level log-loss curves over matched targets`,
+    });
+  }
+
+  text(s, "Earlier trials in context (k)", 206, 550, 250, 22, { size: TYPE.chartSubtitle, color: C.body, align: "center" });
+  text(s, "Earlier trials in context (k)", 824, 550, 250, 22, { size: TYPE.chartSubtitle, color: C.body, align: "center" });
+  participants.forEach((entry, i) => {
+    const x = 908 + i * 116;
+    shape(s, "rect", x, 210, 28, 3, entry.color);
+    text(s, entry.name, x + 36, 200, 68, 22, { size: TYPE.chartLegend, bold: true, color: entry.color });
+  });
+
+  academicPoint(s, "Balance removes the label confound; the remaining gain is participant-specific and non-monotonic.", 588, 20);
+  notes(s, "Both panels evaluate the same forty future choices: twenty from P025 and twenty from P026. Each participant has one shared zero-history point. Natural histories use the first k earlier trials. Balanced histories contain k/2 A and k/2 B choices. P025 improves most at k=6 under balanced history; P026 is noisier and improves at k=12. The curves support a teaching claim about experimental control, not a stable population estimate.\n[Sources]\n- notebooks/results/clean_icl_balance_demo/curve_by_participant.csv\n[/Sources]");
+}
+
+// Clean ICL summary
+{
+  const s = newSlide(p);
   header(s, "Balancing the history restores probability quality", "Prediction / in-context learning result", 24, 1,
     "40 held-out choices / lower log loss is better");
 
@@ -1219,9 +1277,9 @@ notebookTransition(p, {
   text(s, "Mean P(B)", 700, 204, 170, 26, { size: TYPE.tableHeader, bold: true, color: C.muted, align: "center" });
   text(s, "Log loss", 954, 204, 170, 26, { size: TYPE.tableHeader, bold: true, color: C.muted, align: "center" });
   const rows = [
-    ["Current trial only", "0.496", "0.667", C.blue],
-    ["Unbalanced history  /  6 A + 2 B", "0.427", "0.700", C.orange],
-    ["Balanced history  /  4 A + 4 B", "0.570", "0.659", C.teal],
+    ["Current trial only", "0.499", "0.675", C.blue],
+    ["Unbalanced history  /  6 A + 2 B", "0.430", "0.715", C.orange],
+    ["Balanced history  /  4 A + 4 B", "0.571", "0.649", C.teal],
   ];
   rows.forEach((row, i) => {
     const y = 258 + i * 82;
@@ -1232,7 +1290,7 @@ notebookTransition(p, {
   });
   text(s, "Observed B rate = 0.525   |   Random log loss = 0.693", 84, 518, 650, 28, { size: 19, color: C.muted });
   academicPoint(s, "No clear personalization gain may mean weak individual regularity, or a model that cannot use it.", 574, 20);
-  notes(s, "Unbalanced history pushes mean P(B) below the observed target rate and yields log loss 0.700, slightly worse than an uninformative binary forecast. Balanced history reduces log loss to 0.659, slightly better than the current-trial baseline of 0.667. Accuracy does not improve in parallel, which is why this section evaluates token probabilities with log loss. The remaining null personalization result is compatible with at least two explanations: the participant history may not contain a strong stable individual regularity, or the current model and prompt may be too weak to extract and use it. This experiment does not distinguish those explanations.\n[Sources]\n- notebooks/results/clean_icl_balance_demo/summary.csv\n[/Sources]");
+  notes(s, "Unbalanced history pushes mean P(B) below the observed target rate and yields log loss 0.715, worse than an uninformative binary forecast. Balanced history reduces log loss to 0.649, better than the current-trial baseline of 0.675. Accuracy does not improve in parallel, which is why this section evaluates token probabilities with log loss. The participant curves show that the average masks heterogeneous and non-monotonic responses to history. The remaining uncertainty is compatible with at least two explanations: the participant history may not contain a strong stable individual regularity, or the current model and prompt may be too weak to extract and use it.\n[Sources]\n- notebooks/results/clean_icl_balance_demo/summary.csv\n- notebooks/results/clean_icl_balance_demo/curve_by_participant.csv\n[/Sources]");
 }
 
 predictionStep(p, 3, "Test whether training participants reveal task-level regularities", "Update parameters on labeled risky choices, then test whether the learned mapping generalizes to held-out people.");
