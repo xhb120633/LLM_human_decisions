@@ -52,6 +52,7 @@ def build_notebook():
             import json
             import os
             import re
+            import sys
 
             import numpy as np
             import pandas as pd
@@ -328,15 +329,39 @@ def build_notebook():
             )
 
             persona_profile = annotation_profiles.groupby("persona")[list(CODEBOOK)].mean()
-            display(persona_profile.round(3))
+            COLUMN_LABELS = {
+                "expected_value": "Expected\nvalue",
+                "probability": "Probability",
+                "probability_weighting": "Probability\nweighting",
+                "downside": "Downside",
+                "upside": "Upside",
+                "certainty": "Certainty",
+                "risk": "Risk",
+            }
+            display(persona_profile.rename(columns=COLUMN_LABELS).round(3))
 
-            fig, ax = plt.subplots(figsize=(10.5, 4.2))
+            fig, ax = plt.subplots(figsize=(11.8, 4.8), layout="constrained")
             image = ax.imshow(persona_profile.to_numpy(), aspect="auto", cmap="Blues")
-            ax.set_xticks(range(len(CODEBOOK)), labels=list(CODEBOOK), rotation=35, ha="right")
-            ax.set_yticks(range(len(persona_profile)), labels=persona_profile.index)
+            ax.set_xticks(np.arange(len(CODEBOOK)))
+            ax.set_xticklabels([COLUMN_LABELS[name] for name in CODEBOOK], ha="center")
+            ax.tick_params(axis="x", top=True, labeltop=True, bottom=False, labelbottom=False, pad=8)
+            ax.set_yticks(np.arange(len(persona_profile)))
+            ax.set_yticklabels(persona_profile.index)
+            ax.set_ylabel("Controlled persona")
             ax.set_title("Preference-free annotation profiles by controlled persona", loc="left", weight="bold")
-            fig.colorbar(image, ax=ax, label="Fraction of retained sentences")
-            plt.tight_layout()
+            for row_index in range(persona_profile.shape[0]):
+                for column_index in range(persona_profile.shape[1]):
+                    value = persona_profile.iloc[row_index, column_index]
+                    ax.text(
+                        column_index,
+                        row_index,
+                        f"{value:.2f}",
+                        ha="center",
+                        va="center",
+                        color="white" if value > 0.42 else "#1f2937",
+                        fontsize=9,
+                    )
+            fig.colorbar(image, ax=ax, label="Fraction of retained sentences", pad=0.02)
             plt.show()
             '''
         ),
@@ -535,7 +560,141 @@ def build_notebook():
         ),
         md(
             r'''
-            ## 6. Use disagreement to design the next test
+            ## 6. Implement a minimal propose-search-evaluate loop
+
+            The table above evaluates a hand-written candidate set. We now let **DeepSeek V4 Pro** propose and revise candidates, while keeping the scientific controls outside the language model.
+
+            We use one synthetic participant (`69576`) to mirror the participant-level design in the CCN model-discovery study:
+
+            - **training:** Q01-Q11; behavior and preference-free think-aloud are visible to DeepSeek;
+            - **validation:** Q12-Q15; Python fits and ranks proposed candidates;
+            - **test:** Q16-Q19; hidden until one candidate has been selected.
+
+            DeepSeek can select only from the seven approved decision variables. It cannot execute arbitrary code, inspect the test set, or directly choose the winner.
+
+            This compact design adapts the separation of proposal, fitting, held-out evaluation, and think-aloud-constrained search in [Xie et al., *Think-Aloud Reshapes Automated Cognitive Model Discovery Beyond Behavior* (CCN 2026)](https://arxiv.org/abs/2605.05091).
+            '''
+        ),
+        code(
+            r'''
+            def find_project_root():
+                candidates = [Path.cwd(), Path.cwd().parent, Path("/content/LLM_human_decisions")]
+                for candidate in candidates:
+                    if (candidate / "scripts/minimal_discovery_loop.py").exists():
+                        return candidate.resolve()
+                raise FileNotFoundError("Could not locate scripts/minimal_discovery_loop.py")
+
+
+            PROJECT_ROOT = find_project_root()
+            if str(PROJECT_ROOT) not in sys.path:
+                sys.path.insert(0, str(PROJECT_ROOT))
+
+            from scripts.minimal_discovery_loop import (
+                OUTPUT_DIR as DISCOVERY_OUTPUT_DIR,
+                load_participant_trials,
+                run_loop,
+                split_trials,
+            )
+
+            discovery_trials = load_participant_trials()
+            discovery_splits = split_trials(discovery_trials)
+            split_summary = pd.DataFrame([
+                {
+                    "split": name,
+                    "questions": ", ".join(frame["question_id"]),
+                    "n_trials": len(frame),
+                    "A choices": int((frame["choice_label"] == "A").sum()),
+                    "B choices": int((frame["choice_label"] == "B").sum()),
+                    "visible to DeepSeek": "behavior + think-aloud" if name == "train" else "no",
+                }
+                for name, frame in discovery_splits.items()
+            ])
+            display(split_summary)
+            display(
+                discovery_splits["train"][["question_id", "choice_label", "think_aloud"]]
+                .head(3)
+                .rename(columns={"choice_label": "observed_choice", "think_aloud": "preference_free_think_aloud"})
+            )
+            '''
+        ),
+        md(
+            r'''
+            ### One loop, with the test set kept closed
+
+            The live path makes two API calls:
+
+            1. propose four candidate models from the training evidence;
+            2. show validation performance and errors, then request three revisions.
+
+            Python validates every JSON specification, fits its coefficients on training behavior, and ranks it using validation log loss. Only after selection do we refit on training + validation and open the four test questions once.
+
+            Set `RUN_DEEPSEEK_DISCOVERY = True` to rerun the calls. The default uses the cached teaching run, so every student can inspect the complete loop without an API key.
+            '''
+        ),
+        code(
+            r'''
+            RUN_DEEPSEEK_DISCOVERY = False
+            DISCOVERY_CACHE = DISCOVERY_OUTPUT_DIR / "minimal_discovery_run.json"
+
+            if RUN_DEEPSEEK_DISCOVERY:
+                discovery_run = run_loop()
+                DISCOVERY_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+                DISCOVERY_CACHE.write_text(
+                    json.dumps(discovery_run, indent=2, ensure_ascii=False),
+                    encoding="utf-8",
+                )
+            else:
+                discovery_run = json.loads(DISCOVERY_CACHE.read_text(encoding="utf-8"))
+
+            print("Proposal model:", discovery_run["proposal"]["model"])
+            print("Revision model:", discovery_run["revision"]["model"])
+            print("Test access:", discovery_run["design"]["test_access"])
+            '''
+        ),
+        code(
+            r'''
+            initial_validation = pd.DataFrame(discovery_run["initial_validation"])
+            revised_validation = pd.DataFrame(discovery_run["revised_validation"])
+
+            validation_view = pd.concat([
+                initial_validation.assign(iteration="initial proposal"),
+                revised_validation.assign(iteration="revision"),
+            ], ignore_index=True)
+            validation_view["features"] = validation_view["features"].map(", ".join)
+            validation_view = validation_view[
+                ["iteration", "name", "features", "validation_balanced_accuracy", "validation_log_loss"]
+            ].sort_values("validation_log_loss")
+            display(validation_view.round(3))
+
+            print("Selected before opening test:")
+            print(json.dumps(discovery_run["selected_model"], indent=2))
+            '''
+        ),
+        code(
+            r'''
+            test_rows = [discovery_run["test_result"], *discovery_run["test_baselines"]]
+            test_view = pd.DataFrame([
+                {
+                    "model": row["name"],
+                    "features": ", ".join(row["features"]),
+                    "parameters": row["n_parameters"],
+                    "test_balanced_accuracy": row["balanced_accuracy"],
+                    "test_log_loss": row["log_loss"],
+                }
+                for row in test_rows
+            ]).sort_values("test_log_loss")
+            display(test_view.round(3))
+
+            print(
+                "Teaching result: the DeepSeek-selected candidate wins validation but does not "
+                "beat the pre-registered baselines on four test trials. This is a runnable search "
+                "loop, not evidence of mechanism recovery."
+            )
+            '''
+        ),
+        md(
+            r'''
+            ## 7. Use disagreement to design the next test
 
             A candidate model becomes scientifically useful when it produces predictions that can be separated from alternatives. We therefore search for questions where the candidate probabilities disagree most.
             '''
@@ -563,9 +722,20 @@ def build_notebook():
         ),
         md(
             r'''
-            ## 7. The integrated evidence loop
+            ## 8. The integrated evidence loop
 
-            One discovery iteration now has an auditable structure:
+            The implemented search loop now has an auditable structure:
+
+            ```text
+            training behavior + masked reasoning traces
+                -> DeepSeek proposes restricted candidate specifications
+                -> trusted Python fits parameters on training behavior
+                -> validation feedback guides one revision
+                -> select one candidate before opening the test set
+                -> evaluate once on frozen test questions
+            ```
+
+            The earlier annotation-to-candidate route is one possible subloop:
 
             ```text
             masked reasoning traces
@@ -593,6 +763,7 @@ def build_notebook():
             - reasoning annotations detect a controlled synthetic manipulation;
             - preference-free process annotations contain held-question choice information;
             - annotations can restrict a transparent candidate-model search;
+            - a minimal proposal-revision-evaluation loop can be audited end to end;
             - candidate disagreement identifies useful diagnostic questions.
 
             **Not established**

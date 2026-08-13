@@ -1764,6 +1764,108 @@ sectionSlide(
   notes(s, "Draw the boundary explicitly. Annotation converts reports into testable variables. Model discovery searches over executable accounts and may begin from behavior, theory, process data, or interventions. Notebook 3 demonstrates an annotation-guided route, not a required pipeline.");
 }
 
+// Minimal discovery loop: frozen evidence roles
+{
+  const s = newSlide(p);
+  header(s, "Freeze evidence roles before asking the model to search", "Model discovery / experimental setup", 48, 4,
+    "Notebook 3 · synthetic participant 69576 · 19 risky-choice problems");
+
+  const columns = [
+    {
+      x: 84, w: 332, color: C.blue, label: "TRAIN",
+      questions: "Q01-Q11 · 11 trials",
+      visible: "Behavior + preference-free think-aloud",
+      job: "DeepSeek proposes candidate structures; Python fits parameters",
+    },
+    {
+      x: 474, w: 332, color: C.orange, label: "VALIDATION",
+      questions: "Q12-Q15 · 4 trials",
+      visible: "Predictions and errors",
+      job: "Rank candidates and guide one revision",
+    },
+    {
+      x: 864, w: 332, color: C.coral, label: "TEST",
+      questions: "Q16-Q19 · 4 trials",
+      visible: "Hidden during proposal and revision",
+      job: "Open once after selecting the candidate",
+    },
+  ];
+  columns.forEach((col) => {
+    text(s, col.label, col.x, 210, col.w, 28, { size: 18, bold: true, color: col.color });
+    text(s, col.questions, col.x, 252, col.w, 34, { size: 25, bold: true, color: C.ink });
+    shape(s, "rect", col.x, 306, col.w, 1.25, C.line);
+    text(s, "Evidence exposed", col.x, 330, col.w, 24, { size: 16, bold: true, color: C.muted });
+    text(s, col.visible, col.x, 366, col.w, 68, { size: 22, color: C.body, lineSpacing: 1.1 });
+    text(s, "Scientific role", col.x, 454, col.w, 24, { size: 16, bold: true, color: C.muted });
+    text(s, col.job, col.x, 490, col.w, 72, { size: 21, color: C.body, lineSpacing: 1.1 });
+  });
+  academicPoint(s, "The split is part of the claim: validation may steer search; test evidence may not.", 580, 20);
+  notes(s, "This teaching-scale example mirrors the participant-level logic of the CCN study while reducing the search to one participant and one revision. The explicit choice conclusion is removed from think-aloud before it enters the proposal prompt. Four validation and four test trials are too small for a substantive scientific conclusion.\n[Sources]\n- https://arxiv.org/abs/2605.05091\n[/Sources]");
+}
+
+// Minimal discovery loop: division of labor
+{
+  const s = newSlide(p);
+  header(s, "DeepSeek proposes; trusted Python controls the search", "Model discovery / minimal loop", 49, 4,
+    "Two DeepSeek V4 Pro calls · restricted seven-variable model language");
+
+  text(s, "1 · PROPOSE", 84, 210, 250, 26, { size: 17, bold: true, color: C.blue });
+  text(s, "DeepSeek V4 Pro", 84, 250, 300, 38, { size: 27, bold: true, color: C.ink });
+  text(s, "Reads training choices and masked think-aloud; returns four JSON model specifications.", 84, 306, 310, 126, { size: 22, color: C.body, lineSpacing: 1.14 });
+
+  arrow(s, 414, 330, 54, 60);
+
+  text(s, "2 · SEARCH", 496, 210, 250, 26, { size: 17, bold: true, color: C.teal });
+  text(s, "Python evaluator", 496, 250, 300, 38, { size: 27, bold: true, color: C.ink });
+  text(s, "Checks allowed variables, fits coefficients on training behavior, and ranks candidates by validation log loss.", 496, 306, 310, 146, { size: 22, color: C.body, lineSpacing: 1.14 });
+
+  arrow(s, 826, 330, 54, 60);
+
+  text(s, "3 · REVISE + TEST", 908, 210, 286, 26, { size: 17, bold: true, color: C.coral });
+  text(s, "One feedback round", 908, 250, 286, 38, { size: 27, bold: true, color: C.ink });
+  text(s, "DeepSeek sees validation errors and revises three candidates. Python selects one, refits, then opens test once.", 908, 306, 286, 146, { size: 22, color: C.body, lineSpacing: 1.14 });
+
+  shape(s, "rect", 84, 486, 1110, 1.25, C.line);
+  text(s, "Allowed candidate", 84, 512, 190, 24, { size: 16, bold: true, color: C.muted });
+  text(s, '{ "features": ["ev_diff", "p_zero_diff"] }', 286, 508, 560, 34, { size: 21, typeface: MONO, color: C.purple });
+  text(s, "No arbitrary code execution", 882, 512, 312, 24, { size: 17, bold: true, color: C.coral, align: "right" });
+  academicPoint(s, "The language model searches a bounded hypothesis language; it does not score itself.", 580, 20);
+  notes(s, "This is the minimal executable loop implemented in Notebook 3 and scripts/minimal_discovery_loop.py. DeepSeek proposes feature sets and process hypotheses in JSON. Trusted code performs validation, fitting, selection, and testing.\n[Sources]\n- https://api-docs.deepseek.com/api/create-chat-completion\n- https://arxiv.org/abs/2605.05091\n[/Sources]");
+}
+
+// Minimal discovery loop: cached live result
+{
+  const s = newSlide(p);
+  header(s, "The first runnable loop does not win the held-out test", "Model discovery / result", 50, 4,
+    "Cached DeepSeek V4 Pro run · four validation trials · four test trials");
+
+  text(s, "Candidate selected on validation", 84, 210, 500, 30, { size: 24, bold: true, color: C.blue });
+  text(s, "Probability-of-zero avoidance", 84, 258, 500, 36, { size: 28, bold: true, color: C.ink });
+  text(s, "ev_diff + p_zero_diff", 84, 308, 500, 30, { size: 22, typeface: MONO, color: C.purple });
+  text(s, "Validation log loss  0.663", 84, 370, 500, 34, { size: 23, color: C.body });
+  text(s, "Validation balanced accuracy  0.750", 84, 414, 500, 34, { size: 23, color: C.body });
+
+  shape(s, "rect", 620, 210, 1.25, 330, C.line);
+  text(s, "Frozen test comparison", 668, 210, 480, 30, { size: 24, bold: true, color: C.blue });
+  text(s, "Model", 668, 266, 250, 26, { size: TYPE.tableHeader, bold: true, color: C.muted });
+  text(s, "Log loss", 932, 266, 100, 26, { size: TYPE.tableHeader, bold: true, color: C.muted, align: "center" });
+  text(s, "Bal. acc.", 1050, 266, 110, 26, { size: TYPE.tableHeader, bold: true, color: C.muted, align: "center" });
+  const results = [
+    ["All-feature baseline", "0.248", "1.000", C.teal],
+    ["Expected-value baseline", "0.453", "0.750", C.blue],
+    ["DeepSeek-selected", "0.534", "0.500", C.coral],
+  ];
+  results.forEach((row, i) => {
+    const y = 318 + i * 68;
+    text(s, row[0], 668, y, 250, 38, { size: 20, bold: i === 2, color: row[3], valign: "middle" });
+    text(s, row[1], 932, y, 100, 38, { size: 22, bold: true, color: row[3], align: "center", valign: "middle" });
+    text(s, row[2], 1050, y, 110, 38, { size: 22, bold: true, color: row[3], align: "center", valign: "middle" });
+    shape(s, "rect", 668, y + 50, 492, 1, C.line);
+  });
+  academicPoint(s, "A completed loop is evidence that the workflow runs—not that it discovered the mechanism.", 566, 20);
+  notes(s, "The candidate with the lowest validation log loss was selected before test access. On four test questions it underperformed both pre-registered baselines. The all-feature baseline has eight fitted parameters and only four test trials, so its perfect balanced accuracy is descriptive, not a stable estimate.\n[Sources]\n- notebooks/results/minimal_discovery_loop/minimal_discovery_run.json\n[/Sources]");
+}
+
 // 48 Diagnostic trial
 {
   const s = newSlide(p);
@@ -1815,25 +1917,6 @@ rowsSlide(p, {
   rowH: 80,
   startY: 204,
   takeaway: "A system can succeed at one level and fail at every stronger level.",
-});
-
-flowSlide(p, {
-  num: 51,
-  title: "Notebook 3 demonstrates one annotation-guided route",
-  section: "Hands-on",
-  active: 4,
-  steps: [
-    ["Mask", "Remove explicit preference claims"],
-    ["Annotate", "Code information and operations"],
-    ["Validate", "Held-question construct and choice tests"],
-    ["Compile", "Build restricted candidates"],
-    ["Diagnose", "Find questions where models disagree"],
-  ],
-  colors: [C.coral, C.purple, C.blue, C.teal, C.orange],
-  gap: 70,
-  stepTitleSize: 22,
-  stepBodySize: 18,
-  takeaway: "This notebook is one route: discovery can also begin from behavior, prior theory, or interventions without annotation.",
 });
 
 // 53 Final synthesis

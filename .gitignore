@@ -28,6 +28,11 @@ notebooks/results/fixed_eval_balanced_history/*
 !notebooks/results/fixed_eval_balanced_history/fixed_eval_balanced_by_draw.csv
 !notebooks/results/fixed_eval_balanced_history/fixed_eval_balanced_by_participant.csv
 !notebooks/results/fixed_eval_balanced_history/selection_manifest.csv
+!notebooks/results/minimal_discovery_loop/
+notebooks/results/minimal_discovery_loop/*
+!notebooks/results/minimal_discovery_loop/minimal_discovery_run.json
+!notebooks/results/minimal_discovery_loop/validation_results.csv
+!notebooks/results/minimal_discovery_loop/test_results.csv
 notebooks/*.qa.ipynb
 scripts/*
 !scripts/build_notebooks.py
@@ -35,3 +40,4 @@ scripts/*
 !scripts/run_prefix_history_sft.py
 !scripts/evaluate_prefix_history_controls.py
 !scripts/run_fixed_eval_balanced_history_curve.py
+!scripts/minimal_discovery_loop.py

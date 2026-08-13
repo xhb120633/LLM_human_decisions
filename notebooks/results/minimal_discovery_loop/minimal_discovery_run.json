@@ -1,0 +1,398 @@
+{
+  "design": {
+    "participant_id": 69576,
+    "train_questions": [
+      "Q01",
+      "Q02",
+      "Q03",
+      "Q04",
+      "Q05",
+      "Q06",
+      "Q07",
+      "Q08",
+      "Q09",
+      "Q10",
+      "Q11"
+    ],
+    "validation_questions": [
+      "Q12",
+      "Q13",
+      "Q14",
+      "Q15"
+    ],
+    "test_questions": [
+      "Q16",
+      "Q17",
+      "Q18",
+      "Q19"
+    ],
+    "test_access": "opened once after candidate selection"
+  },
+  "proposal": {
+    "model": "deepseek-v4-pro",
+    "usage": {
+      "prompt_tokens": 2994,
+      "completion_tokens": 608
+    },
+    "content": {
+      "candidates": [
+        {
+          "name": "Expected value maximization",
+          "features": [
+            "ev_diff"
+          ],
+          "process_hypothesis": "Choices are made by comparing expected values; the option with higher expected value is selected.",
+          "trace_evidence": "In Q01, Q03, Q07, Q08, Q11, the participant explicitly computes expected values and chooses the option with higher EV. In Q02, Q04, Q05, Q06, Q09, Q10, EVs are equal, and the participant then considers other factors."
+        },
+        {
+          "name": "Risk avoidance for equal EV",
+          "features": [
+            "ev_diff",
+            "sd_diff"
+          ],
+          "process_hypothesis": "When expected values are equal, the option with lower outcome standard deviation (less risk) is preferred.",
+          "trace_evidence": "In Q05 and Q10, with equal EVs, the participant chooses the certain option (B) citing risk avoidance. In Q02, Q04, Q06, Q09, the participant also mentions risk or chance of loss, but choices vary: Q02 and Q09 choose A (lower probability of loss), Q04 chooses B (lower worst outcome), Q06 chooses B (higher chance of winning)."
+        },
+        {
+          "name": "Probability of zero avoidance",
+          "features": [
+            "ev_diff",
+            "p_zero_diff"
+          ],
+          "process_hypothesis": "When expected values are equal, the option with lower probability of zero outcome (or higher chance of non-zero) is preferred.",
+          "trace_evidence": "In Q06, with equal EVs, the participant notes Option B has twice the chance of winning and chooses B. In Q09, with equal EVs, the participant notes Option A has a 55% chance of no loss vs 10% for B, and chooses A. In Q02, with equal EVs, the participant notes Option A has a 20% chance of no loss vs 0% for B, and chooses A."
+        },
+        {
+          "name": "Worst outcome avoidance",
+          "features": [
+            "ev_diff",
+            "worst_diff"
+          ],
+          "process_hypothesis": "When expected values are equal, the option with the better (less negative) worst outcome is preferred.",
+          "trace_evidence": "In Q04, with equal EVs, the participant notes Option A has a potential loss of -6000 while Option B's worst is -4000, and chooses B. In Q10, with equal EVs, the participant notes Option A has a risk of losing $5000 while Option B is a certain small loss, and chooses B. In Q05, with equal EVs, the participant notes Option A has a chance of nothing while Option B is certain $5, and chooses B."
+        }
+      ]
+    }
+  },
+  "initial_validation": [
+    {
+      "name": "Expected value maximization",
+      "features": [
+        "ev_diff"
+      ],
+      "process_hypothesis": "Choices are made by comparing expected values; the option with higher expected value is selected.",
+      "trace_evidence": "In Q01, Q03, Q07, Q08, Q11, the participant explicitly computes expected values and chooses the option with higher EV. In Q02, Q04, Q05, Q06, Q09, Q10, EVs are equal, and the participant then considers other factors.",
+      "validation_balanced_accuracy": 0.5,
+      "validation_log_loss": 0.6799509500850159,
+      "validation_errors": [
+        {
+          "question_id": "Q12",
+          "actual": "A",
+          "predicted": "B",
+          "p_B": 0.512
+        },
+        {
+          "question_id": "Q15",
+          "actual": "A",
+          "predicted": "B",
+          "p_B": 0.544
+        }
+      ]
+    },
+    {
+      "name": "Risk avoidance for equal EV",
+      "features": [
+        "ev_diff",
+        "sd_diff"
+      ],
+      "process_hypothesis": "When expected values are equal, the option with lower outcome standard deviation (less risk) is preferred.",
+      "trace_evidence": "In Q05 and Q10, with equal EVs, the participant chooses the certain option (B) citing risk avoidance. In Q02, Q04, Q06, Q09, the participant also mentions risk or chance of loss, but choices vary: Q02 and Q09 choose A (lower probability of loss), Q04 chooses B (lower worst outcome), Q06 chooses B (higher chance of winning).",
+      "validation_balanced_accuracy": 0.0,
+      "validation_log_loss": 0.9460594808825533,
+      "validation_errors": [
+        {
+          "question_id": "Q12",
+          "actual": "A",
+          "predicted": "B",
+          "p_B": 0.595
+        },
+        {
+          "question_id": "Q13",
+          "actual": "B",
+          "predicted": "A",
+          "p_B": 0.459
+        },
+        {
+          "question_id": "Q14",
+          "actual": "B",
+          "predicted": "A",
+          "p_B": 0.266
+        },
+        {
+          "question_id": "Q15",
+          "actual": "A",
+          "predicted": "B",
+          "p_B": 0.541
+        }
+      ]
+    },
+    {
+      "name": "Probability of zero avoidance",
+      "features": [
+        "ev_diff",
+        "p_zero_diff"
+      ],
+      "process_hypothesis": "When expected values are equal, the option with lower probability of zero outcome (or higher chance of non-zero) is preferred.",
+      "trace_evidence": "In Q06, with equal EVs, the participant notes Option B has twice the chance of winning and chooses B. In Q09, with equal EVs, the participant notes Option A has a 55% chance of no loss vs 10% for B, and chooses A. In Q02, with equal EVs, the participant notes Option A has a 20% chance of no loss vs 0% for B, and chooses A.",
+      "validation_balanced_accuracy": 0.75,
+      "validation_log_loss": 0.6630173601237348,
+      "validation_errors": [
+        {
+          "question_id": "Q15",
+          "actual": "A",
+          "predicted": "B",
+          "p_B": 0.57
+        }
+      ]
+    },
+    {
+      "name": "Worst outcome avoidance",
+      "features": [
+        "ev_diff",
+        "worst_diff"
+      ],
+      "process_hypothesis": "When expected values are equal, the option with the better (less negative) worst outcome is preferred.",
+      "trace_evidence": "In Q04, with equal EVs, the participant notes Option A has a potential loss of -6000 while Option B's worst is -4000, and chooses B. In Q10, with equal EVs, the participant notes Option A has a risk of losing $5000 while Option B is a certain small loss, and chooses B. In Q05, with equal EVs, the participant notes Option A has a chance of nothing while Option B is certain $5, and chooses B.",
+      "validation_balanced_accuracy": 0.75,
+      "validation_log_loss": 0.6833840748519149,
+      "validation_errors": [
+        {
+          "question_id": "Q15",
+          "actual": "A",
+          "predicted": "B",
+          "p_B": 0.522
+        }
+      ]
+    }
+  ],
+  "revision": {
+    "model": "deepseek-v4-pro",
+    "usage": {
+      "prompt_tokens": 4158,
+      "completion_tokens": 791
+    },
+    "content": {
+      "candidates": [
+        {
+          "name": "Probability of zero avoidance",
+          "features": [
+            "ev_diff",
+            "p_zero_diff"
+          ],
+          "process_hypothesis": "When expected values are equal, the option with lower probability of zero outcome (or higher chance of non-zero) is preferred.",
+          "trace_evidence": "In Q06, with equal EVs, the participant notes Option B has twice the chance of winning and chooses B. In Q09, with equal EVs, the participant notes Option A has a 55% chance of no loss vs 10% for B, and chooses A. In Q02, with equal EVs, the participant notes Option A has a 20% chance of no loss vs 0% for B, and chooses A.",
+          "revision_reason": "This candidate had the best validation performance (log loss 0.663, balanced accuracy 0.75) and only one error on Q15. It is retained unchanged."
+        },
+        {
+          "name": "Worst outcome avoidance with probability of zero",
+          "features": [
+            "ev_diff",
+            "worst_diff",
+            "p_zero_diff"
+          ],
+          "process_hypothesis": "When expected values are equal, the option with better worst outcome and lower probability of zero is preferred.",
+          "trace_evidence": "In Q04, with equal EVs, the participant notes Option A has a potential loss of -6000 while Option B's worst is -4000, and chooses B. In Q10, with equal EVs, the participant notes Option A has a risk of losing $5000 while Option B is a certain small loss, and chooses B. In Q05, with equal EVs, the participant notes Option A has a chance of nothing while Option B is certain $5, and chooses B. In Q06, with equal EVs, the participant notes Option B has twice the chance of winning and chooses B. In Q09, with equal EVs, the participant notes Option A has a 55% chance of no loss vs 10% for B, and chooses A. In Q02, with equal EVs, the participant notes Option A has a 20% chance of no loss vs 0% for B, and chooses A.",
+          "revision_reason": "Combining worst outcome avoidance and probability of zero avoidance may capture more of the decision process when EVs are equal. The individual candidates each had one error on Q15, but combining them might resolve that error if the features are complementary."
+        },
+        {
+          "name": "Probability of zero avoidance with risk",
+          "features": [
+            "ev_diff",
+            "p_zero_diff",
+            "sd_diff"
+          ],
+          "process_hypothesis": "When expected values are equal, the option with lower probability of zero outcome and lower risk (sd) is preferred.",
+          "trace_evidence": "In Q06, with equal EVs, the participant notes Option B has twice the chance of winning and chooses B. In Q09, with equal EVs, the participant notes Option A has a 55% chance of no loss vs 10% for B, and chooses A. In Q02, with equal EVs, the participant notes Option A has a 20% chance of no loss vs 0% for B, and chooses A. In Q05 and Q10, with equal EVs, the participant chooses the certain option (B) citing risk avoidance.",
+          "revision_reason": "Adding risk (sd_diff) to probability of zero avoidance might capture the preference for certainty in Q05 and Q10, which the probability of zero avoidance alone may not fully explain. The risk avoidance candidate had poor validation, but combining it with the better-performing probability of zero avoidance might improve overall performance."
+        }
+      ]
+    }
+  },
+  "revised_validation": [
+    {
+      "name": "Probability of zero avoidance",
+      "features": [
+        "ev_diff",
+        "p_zero_diff"
+      ],
+      "process_hypothesis": "When expected values are equal, the option with lower probability of zero outcome (or higher chance of non-zero) is preferred.",
+      "trace_evidence": "In Q06, with equal EVs, the participant notes Option B has twice the chance of winning and chooses B. In Q09, with equal EVs, the participant notes Option A has a 55% chance of no loss vs 10% for B, and chooses A. In Q02, with equal EVs, the participant notes Option A has a 20% chance of no loss vs 0% for B, and chooses A.",
+      "validation_balanced_accuracy": 0.75,
+      "validation_log_loss": 0.6630173601237348,
+      "validation_errors": [
+        {
+          "question_id": "Q15",
+          "actual": "A",
+          "predicted": "B",
+          "p_B": 0.57
+        }
+      ]
+    },
+    {
+      "name": "Worst outcome avoidance with probability of zero",
+      "features": [
+        "ev_diff",
+        "worst_diff",
+        "p_zero_diff"
+      ],
+      "process_hypothesis": "When expected values are equal, the option with better worst outcome and lower probability of zero is preferred.",
+      "trace_evidence": "In Q04, with equal EVs, the participant notes Option A has a potential loss of -6000 while Option B's worst is -4000, and chooses B. In Q10, with equal EVs, the participant notes Option A has a risk of losing $5000 while Option B is a certain small loss, and chooses B. In Q05, with equal EVs, the participant notes Option A has a chance of nothing while Option B is certain $5, and chooses B. In Q06, with equal EVs, the participant notes Option B has twice the chance of winning and chooses B. In Q",
+      "validation_balanced_accuracy": 0.5,
+      "validation_log_loss": 0.6666139415191116,
+      "validation_errors": [
+        {
+          "question_id": "Q13",
+          "actual": "B",
+          "predicted": "A",
+          "p_B": 0.498
+        },
+        {
+          "question_id": "Q15",
+          "actual": "A",
+          "predicted": "B",
+          "p_B": 0.556
+        }
+      ]
+    },
+    {
+      "name": "Probability of zero avoidance with risk",
+      "features": [
+        "ev_diff",
+        "p_zero_diff",
+        "sd_diff"
+      ],
+      "process_hypothesis": "When expected values are equal, the option with lower probability of zero outcome and lower risk (sd) is preferred.",
+      "trace_evidence": "In Q06, with equal EVs, the participant notes Option B has twice the chance of winning and chooses B. In Q09, with equal EVs, the participant notes Option A has a 55% chance of no loss vs 10% for B, and chooses A. In Q02, with equal EVs, the participant notes Option A has a 20% chance of no loss vs 0% for B, and chooses A. In Q05 and Q10, with equal EVs, the participant chooses the certain option (B) citing risk avoidance.",
+      "validation_balanced_accuracy": 0.0,
+      "validation_log_loss": 0.9192031224808876,
+      "validation_errors": [
+        {
+          "question_id": "Q12",
+          "actual": "A",
+          "predicted": "B",
+          "p_B": 0.516
+        },
+        {
+          "question_id": "Q13",
+          "actual": "B",
+          "predicted": "A",
+          "p_B": 0.432
+        },
+        {
+          "question_id": "Q14",
+          "actual": "B",
+          "predicted": "A",
+          "p_B": 0.28
+        },
+        {
+          "question_id": "Q15",
+          "actual": "A",
+          "predicted": "B",
+          "p_B": 0.569
+        }
+      ]
+    }
+  ],
+  "selected_model": {
+    "name": "Probability of zero avoidance",
+    "features": [
+      "ev_diff",
+      "p_zero_diff"
+    ],
+    "process_hypothesis": "When expected values are equal, the option with lower probability of zero outcome (or higher chance of non-zero) is preferred.",
+    "trace_evidence": "In Q06, with equal EVs, the participant notes Option B has twice the chance of winning and chooses B. In Q09, with equal EVs, the participant notes Option A has a 55% chance of no loss vs 10% for B, and chooses A. In Q02, with equal EVs, the participant notes Option A has a 20% chance of no loss vs 0% for B, and chooses A."
+  },
+  "test_result": {
+    "name": "Probability of zero avoidance",
+    "features": [
+      "ev_diff",
+      "p_zero_diff"
+    ],
+    "process_hypothesis": "When expected values are equal, the option with lower probability of zero outcome (or higher chance of non-zero) is preferred.",
+    "trace_evidence": "In Q06, with equal EVs, the participant notes Option B has twice the chance of winning and chooses B. In Q09, with equal EVs, the participant notes Option A has a 55% chance of no loss vs 10% for B, and chooses A. In Q02, with equal EVs, the participant notes Option A has a 20% chance of no loss vs 0% for B, and chooses A.",
+    "n_parameters": 3,
+    "probability_B": [
+      0.5733396773822619,
+      0.4463607592258601,
+      0.9692283416895685,
+      0.36126017357721774
+    ],
+    "balanced_accuracy": 0.5,
+    "log_loss": 0.5344769923693642,
+    "errors": [
+      {
+        "question_id": "Q16",
+        "actual": "A",
+        "predicted": "B",
+        "p_B": 0.573
+      },
+      {
+        "question_id": "Q17",
+        "actual": "B",
+        "predicted": "A",
+        "p_B": 0.446
+      }
+    ]
+  },
+  "test_baselines": [
+    {
+      "name": "expected-value baseline",
+      "features": [
+        "ev_diff"
+      ],
+      "process_hypothesis": "choices track expected value",
+      "trace_evidence": "pre-registered baseline",
+      "n_parameters": 2,
+      "probability_B": [
+        0.5382281150517155,
+        0.5382281150517155,
+        0.9748474614325646,
+        0.32677313442877726
+      ],
+      "balanced_accuracy": 0.75,
+      "log_loss": 0.4533260621516836,
+      "errors": [
+        {
+          "question_id": "Q16",
+          "actual": "A",
+          "predicted": "B",
+          "p_B": 0.538
+        }
+      ]
+    },
+    {
+      "name": "all-feature baseline",
+      "features": [
+        "ev_diff",
+        "sd_diff",
+        "worst_diff",
+        "best_diff",
+        "p_best_diff",
+        "p_zero_diff",
+        "certain_diff"
+      ],
+      "process_hypothesis": "unrestricted linear combination of the library",
+      "trace_evidence": "capacity baseline",
+      "n_parameters": 8,
+      "probability_B": [
+        0.23136253665351528,
+        0.5761665808792177,
+        0.9522367755988436,
+        0.12019400087915835
+      ],
+      "balanced_accuracy": 1.0,
+      "log_loss": 0.24787243237776346,
+      "errors": []
+    }
+  ]
+}
