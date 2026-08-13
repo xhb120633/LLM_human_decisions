@@ -109,14 +109,30 @@ async function addStaticLineChart(slide, cfg) {
     return `<line x1="${margin.left}" y1="${yy}" x2="${margin.left + plotW}" y2="${yy}" stroke="${C.line}" stroke-width="1"/>` +
       `<text x="${margin.left - 10}" y="${yy + 5}" text-anchor="end" font-family="Arial" font-size="${TYPE.chartAxis}" fill="${C.muted}">${xmlEscape(yFormat(v))}</text>`;
   }).join("");
-  const xTicks = categories.map((c, i) => `<text x="${sx(i)}" y="${margin.top + plotH + 24}" text-anchor="middle" font-family="Arial" font-size="${TYPE.chartAxis}" fill="${C.ink}">${xmlEscape(c)}</text>`).join("");
+  const xLabelIndices = cfg.xLabelIndices ?? categories.map((_, i) => i);
+  const xTicks = xLabelIndices.map((i) => `<text x="${sx(i)}" y="${margin.top + plotH + 24}" text-anchor="middle" font-family="Arial" font-size="${TYPE.chartAxis}" fill="${C.ink}">${xmlEscape(categories[i])}</text>`).join("");
+  const bands = (cfg.bands ?? []).map((band) => {
+    const left = sx(band.fromIndex);
+    const right = sx(band.toIndex);
+    return `<rect x="${left}" y="${margin.top}" width="${right - left}" height="${plotH}" fill="${band.color}" opacity="${band.opacity ?? 0.25}"/>`;
+  }).join("");
   const chartLines = series.map((entry, seriesIndex) => {
     const points = entry.values.map((v, i) => `${sx(i)},${sy(v)}`).join(" ");
     const dash = entry.dash ? ` stroke-dasharray="${entry.dash}"` : "";
     const path = `<polyline points="${points}" fill="none" stroke="${entry.color}" stroke-width="${entry.width ?? 3}" stroke-linejoin="round" stroke-linecap="round"${dash}/>`;
+    const errors = entry.errors ? entry.values.map((v, i) => {
+      const err = Number.isFinite(entry.errors[i]) ? entry.errors[i] : 0;
+      if (err <= 0) return "";
+      const xx = sx(i);
+      const yTop = sy(Math.min(yMax, v + err));
+      const yBottom = sy(Math.max(yMin, v - err));
+      return `<line x1="${xx}" y1="${yTop}" x2="${xx}" y2="${yBottom}" stroke="${entry.color}" stroke-width="1.4"/>` +
+        `<line x1="${xx - 5}" y1="${yTop}" x2="${xx + 5}" y2="${yTop}" stroke="${entry.color}" stroke-width="1.4"/>` +
+        `<line x1="${xx - 5}" y1="${yBottom}" x2="${xx + 5}" y2="${yBottom}" stroke="${entry.color}" stroke-width="1.4"/>`;
+    }).join("") : "";
     const markers = entry.markers === false ? "" : entry.values.map((v, i) => `<circle cx="${sx(i)}" cy="${sy(v)}" r="${entry.markerSize ?? 4}" fill="${C.white}" stroke="${entry.color}" stroke-width="2"/>`).join("");
     const labels = labelSeries.includes(seriesIndex) ? entry.values.map((v, i) => `<text x="${sx(i)}" y="${Math.max(14, sy(v) - 10)}" text-anchor="middle" font-family="Arial" font-size="${TYPE.chartValue}" font-weight="700" fill="${entry.color}">${xmlEscape(v.toFixed(3))}</text>`).join("") : "";
-    return path + markers + labels;
+    return errors + path + markers + labels;
   }).join("");
   const named = series.filter((entry) => entry.name);
   const legend = showLegend ? named.map((entry, i) => {
@@ -128,7 +144,7 @@ async function addStaticLineChart(slide, cfg) {
   }).join("") : "";
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w * 2}" height="${h * 2}" viewBox="0 0 ${w} ${h}">
     <rect width="${w}" height="${h}" fill="${C.white}"/>
-    ${grid}
+    ${bands}${grid}
     <line x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${margin.top + plotH}" stroke="${C.ink}" stroke-width="1.2"/>
     <line x1="${margin.left}" y1="${margin.top + plotH}" x2="${margin.left + plotW}" y2="${margin.top + plotH}" stroke="${C.ink}" stroke-width="1.2"/>
     ${xTicks}${chartLines}${legend}
@@ -1000,10 +1016,54 @@ notebookTransition(p, {
   academicPoint(s, "History length is confounded with label balance; do not conclude that more context improves prediction.", 588, 20);
   notes(s, "Keep this failed pilot. The 87.5% B target slice conflicts with the A-heavy histories and motivates balancing before interpreting history length. The chart is generated directly from the six recorded mean log-loss values.");
 }
-// 24 Participant-level balanced learning curves
+
+// 24 Aggregate balanced learning curve
 {
   const s = newSlide(p);
-  header(s, "The average hides participant-level differences", "Hands-on / participant-level learning curves", 24, 1,
+  header(s, "Balancing reveals an early average gain, not steady improvement", "Hands-on / balanced learning curve", 24, 1,
+    "3 participants / 24 fixed balanced targets / 3 balanced history draws");
+  text(s, "Mean held-out log loss", 84, 214, 360, 34, { size: TYPE.chartTitle, bold: true, color: C.blue });
+  text(s, "Error bars: standard deviation across three balanced history selections", 84, 248, 650, 24, {
+    size: TYPE.chartSubtitle,
+    color: C.muted,
+  });
+
+  const labels = ["0", "2", "4", "6", "8", "10", "12", "14", "16", "18"];
+  const meanLoss = [0.878, 0.794, 0.816, 0.818, 0.873, 0.944, 0.911, 0.959, 0.861, 0.916];
+  const sdLoss = [0.000, 0.047, 0.145, 0.130, 0.138, 0.076, 0.112, 0.223, 0.119, 0.033];
+  await addStaticLineChart(s, {
+    x: 82, y: 278, w: 1078, h: 278,
+    categories: labels,
+    series: [
+      { name: "Balanced-history mean", values: meanLoss, errors: sdLoss, color: C.blue, width: 3, markerSize: 4 },
+      { name: "Random choice", values: labels.map(() => Math.log(2)), color: C.mutedLight, width: 1.75, markers: false, dash: "6 5" },
+    ],
+    bands: [{ fromIndex: 1, toIndex: 3, color: C.blueLight, opacity: 0.24 }],
+    yMin: 0.5, yMax: 1.2, yStep: 0.2,
+    showLegend: true,
+    alt: "Aggregate held-out log loss after balancing histories and targets, with standard-deviation error bars and random-choice reference",
+  });
+  text(s, "Number of balanced earlier trials in context", 382, 552, 500, 24, {
+    size: TYPE.chartSubtitle,
+    color: C.body,
+    align: "center",
+  });
+  academicPoint(s, "On average, 2-6 examples help relative to zero-shot; longer histories do not yield a stable additional gain.", 590, 20);
+  notes(s, [
+    "This is the missing aggregate result after correcting the label imbalance in the failed pilot.",
+    "Zero-shot mean log loss is 0.878. Balanced histories reduce it to 0.794-0.818 at k=2-6; later points do not show monotonic improvement.",
+    "The error bars are standard deviations across three balanced history selections, not participant-level confidence intervals.",
+    "The next slide decomposes this average by participant.",
+    "[Sources]",
+    "- notebooks/results/expanded_balanced_summary.csv",
+    "[/Sources]",
+  ]);
+}
+
+// 25 Participant-level balanced learning curves
+{
+  const s = newSlide(p);
+  header(s, "The same average hides participant-level differences", "Hands-on / participant-level learning curves", 25, 1,
     "3 participants / 8 fixed targets each / 3 balanced histories at each non-zero history length");
 
   const labels = ["0", "2", "4", "6", "8", "10", "12", "14", "16", "18"];
@@ -1045,6 +1105,7 @@ notebookTransition(p, {
       categories: labels,
       series: chartSeries,
       yMin, yMax, yStep: majorUnit,
+      xLabelIndices: [0, 3, 6, 9],
       alt: `Participant-level ${key} learning curves with reference line`,
     });
   }
