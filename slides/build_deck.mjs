@@ -1020,12 +1020,24 @@ notebookTransition(p, {
 // 24 Aggregate balanced learning curve
 {
   const s = newSlide(p);
-  header(s, "Balancing reveals an early average gain, not steady improvement", "Hands-on / balanced learning curve", 24, 1,
-    "3 participants / 24 fixed balanced targets / 3 balanced history draws");
+  header(s, "A new balanced evaluation set reveals an early average gain", "Hands-on / balanced learning curve", 24, 1,
+    "Different evaluation set from the failed pilot / 3 participants / 24 targets");
   text(s, "Mean held-out log loss", 84, 214, 360, 34, { size: TYPE.chartTitle, bold: true, color: C.blue });
   text(s, "Error bars: standard deviation across three balanced history selections", 84, 248, 650, 24, {
     size: TYPE.chartSubtitle,
     color: C.muted,
+  });
+  text(s, "NEW EVALUATION SET", 786, 214, 374, 20, {
+    size: 14,
+    bold: true,
+    color: C.coral,
+    align: "right",
+  });
+  text(s, "24 targets: 12 A / 12 B\nZero-shot recomputed on these targets", 786, 238, 374, 42, {
+    size: 16,
+    color: C.body,
+    align: "right",
+    lineSpacing: 1.08,
   });
 
   const labels = ["0", "2", "4", "6", "8", "10", "12", "14", "16", "18"];
@@ -1048,7 +1060,7 @@ notebookTransition(p, {
     color: C.body,
     align: "center",
   });
-  academicPoint(s, "On average, 2-6 examples help relative to zero-shot; longer histories do not yield a stable additional gain.", 590, 20);
+  academicPoint(s, "Within this new target set, 2-6 examples help on average; longer histories do not yield a stable additional gain.", 590, 20);
   notes(s, [
     "This is the missing aggregate result after correcting the label imbalance in the failed pilot.",
     "Zero-shot mean log loss is 0.878. Balanced histories reduce it to 0.794-0.818 at k=2-6; later points do not show monotonic improvement.",
