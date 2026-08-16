@@ -20,7 +20,7 @@
 - [Notebook 3：从解释标注到模型发现](notebooks/03_explanation_annotation_to_model_discovery.ipynb)
 - [Notebook 4：本地模型与参数适配（可选）](notebooks/04_optional_local_models_and_adaptation.ipynb)
 
-Notebook 默认可以读取随仓库发布的小型公开教学切片和缓存结果进行离线浏览。仓库不包含原始参与者数据、模型权重或完整 activation matrices。
+Notebook 默认使用随仓库发布的小型公开教学切片和缓存模型输出，但 MDS、persona trajectory、downstream decoding 等轻量分析会现场重算。API 调用、Qwen hidden-state extraction、layerwise probe、Text2Decision 训练、model-discovery iteration 和 LoRA 训练的原始代码均保留，并通过显式开关选择现场运行或缓存 fallback。仓库不包含原始参与者数据、模型权重或完整 activation matrices。
 
 ## 你需要准备什么
 

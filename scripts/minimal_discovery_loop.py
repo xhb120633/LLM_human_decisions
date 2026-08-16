@@ -8,8 +8,6 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from dotenv import load_dotenv
-from openai import OpenAI
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import balanced_accuracy_score, log_loss
 from sklearn.pipeline import make_pipeline
@@ -214,6 +212,9 @@ def revision_messages(
 
 
 def call_deepseek(messages: list[dict]) -> dict:
+    from dotenv import load_dotenv
+    from openai import OpenAI
+
     load_dotenv(PROJECT / ".env")
     key = os.getenv("DEEPSEEK_API_KEY")
     if not key:

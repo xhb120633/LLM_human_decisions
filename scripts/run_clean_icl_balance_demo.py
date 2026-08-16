@@ -8,8 +8,6 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from dotenv import load_dotenv
-from openai import OpenAI
 
 
 PROJECT = Path(__file__).resolve().parents[1]
@@ -92,7 +90,7 @@ def make_messages(target: pd.Series, history: pd.DataFrame, swap: bool) -> list[
     ]
 
 
-def call(client: OpenAI, messages: list[dict], attempts: int = 4):
+def call(client, messages: list[dict], attempts: int = 4):
     for attempt in range(attempts):
         try:
             return client.chat.completions.create(
@@ -153,6 +151,9 @@ def metrics(frame: pd.DataFrame, probability: str) -> dict:
 
 
 def main() -> None:
+    from dotenv import load_dotenv
+    from openai import OpenAI
+
     load_dotenv(PROJECT / ".env")
     client = OpenAI(
         api_key=os.environ["DEEPSEEK_API_KEY"],
